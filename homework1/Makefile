@@ -1,7 +1,7 @@
 CC=gcc
 FNAME=compiler_hw1
 EXE=myscanner
-TEST=operators.go
+TEST=test.go
 
 ifeq ($(OS),Windows_NT)
     OSTYPE = windows
