@@ -20,6 +20,7 @@
 	symboltable* table[TableSize];
 	int CreateTableFlag=0;	
 	int commentline=0;
+	int CheckUndefined=0;
 %}
 
 /* Define regular expression label */
@@ -30,6 +31,7 @@ id {letter}+({letter}|{digit})*
 floatdigit [0-9]+"."[0-9]+
 number {digit}+|{floatdigit}
 ignore [\t\r\s]+|" "
+
 /* Rules section */
 %%
 
@@ -37,6 +39,19 @@ ignore [\t\r\s]+|" "
 {number} {printf("%s \t Number\n",yytext);}
 
 "//".*	{printf("%s \t C++ Comment \n",yytext);commentline++;}
+
+"/""*"[^*]*[*]+([^*/][^*]*[*]+)*"/" {
+		printf("%s \t C++ Comment \n",yytext);
+		commentline++;
+		
+		int i ;
+                for(i=0;i<yyleng;i++)
+                        if(yytext[i]=='\n')
+				{
+					linecount++;
+				}
+
+		}
 
 "var"     {varflag = 1 ;}
 "int"     {
@@ -62,12 +77,18 @@ ignore [\t\r\s]+|" "
 "+" 	{ printf("%s \t Add \n", yytext); }
 "-"		{ printf("%s \t Sub \n", yytext); }
 {id}	{
-	if(varflag==1){
+
+	if(varflag==1){//如果是宣告
 		nowid = malloc(strlen(yytext)+1);
 		strcpy(nowid,yytext);
 	}
 	else{
 		printf("%s \t ID \n", yytext);
+		//查看是否是undefined variable
+		CheckUndefined = 1;
+		lookup_symbol(yytext);
+		CheckUndefined = 0;		
+		
 	}
 
 	}
@@ -77,7 +98,17 @@ ignore [\t\r\s]+|" "
 ")"     { printf("%s \t RB \n", yytext); }
 "{"     { printf("%s \t LCB \n", yytext); }
 "}"     { printf("%s \t RCB \n", yytext); }
-"\""     { printf("%s \t quotation \n", yytext); }
+
+\"{letter}+({letter}|{digit})*\" {
+		
+		printf("\" \t quotation \n");
+		int i ; 
+		for(i=1;i<yyleng-1;i++)
+			printf("%c",yytext[i]);
+		printf("\t String\n");
+		printf("\" \t quotation \n");
+
+	}
 
 "*"     { printf("%s \t Multiply \n", yytext); }
 "/"     { printf("%s \t Divide \n", yytext); }
@@ -134,7 +165,7 @@ void insert_symbol(char* id , int type) {
 		if(type==0)//int
 			table[0]->type="int";
 		else if(type==1)//float
-			table[0]->type="float";
+			table[0]->type="float32";
 	}
 	else{
 		if(lookup_symbol(id)==-1){//not declare yet(id not in symbol table)
@@ -149,7 +180,7 @@ void insert_symbol(char* id , int type) {
 		                if(type==0)//int
 	                	        table[i]->type="int";
         		        else if(type==1)//float
-                        		table[i]->type="float";
+                        		table[i]->type="float32";
 			
 				return;
 			}
@@ -159,10 +190,20 @@ void insert_symbol(char* id , int type) {
 }
 int lookup_symbol(char *id) {
 	int i;
+	//查看是否undefined
+	if(CheckUndefined){
+		for(i=0;i<TableSize;i++)
+                        if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0)
+                        	return 0;//表示有defined
+	
+        	printf("Undefined variable %s\n",id);
+		return -1;//沒有defined
+	}
+	//查看是否redefined
 	for(i=0;i<TableSize;i++){
 			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0){
-			printf("Redefined variable [%d],id:%s,table:%s\n",i,id,table[i]->id);
-			return 1;
+			printf("Redefined variable %s,table index:%d\n",id,i);
+			return i;
 			}
 	}
 	return -1;
