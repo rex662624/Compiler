@@ -21,6 +21,7 @@
 	int CreateTableFlag=0;	
 	int commentline=0;
 	int CheckUndefined=0;
+	int doubleComment=0;//查看是否有同一行複數個comment
 %}
 
 /* Define regular expression label */
@@ -38,18 +39,25 @@ ignore [\t\r\s]+|" "
 {ignore}	{;}
 {number} {printf("%s \t Number\n",yytext);}
 
-"//".*	{printf("%s \t C++ Comment \n",yytext);commentline++;}
+"//".*	{printf("%s \t C++ Comment \n",yytext);commentline++;
+	if(doubleComment==1)commentline--;
+	}
 
 "/""*"[^*]*[*]+([^*/][^*]*[*]+)*"/" {
 		printf("%s \t C++ Comment \n",yytext);
 		commentline++;
-		
+		//解決一行有兩個以上的註解
+		if(doubleComment==1)commentline--;
+		//解決註解橫跨多行
 		int i ;
                 for(i=0;i<yyleng;i++)
                         if(yytext[i]=='\n')
 				{
+					commentline++;
 					linecount++;
 				}
+		
+		doubleComment=1;
 
 		}
 
@@ -92,7 +100,7 @@ ignore [\t\r\s]+|" "
 	}
 
 	}
-\n	{linecount++; varflag = 0;nowid=NULL;}
+\n	{linecount++; varflag = 0;nowid=NULL;doubleComment=0;}
 
 "("     { printf("%s \t LB \n", yytext); }
 ")"     { printf("%s \t RB \n", yytext); }
