@@ -1,10 +1,13 @@
 var a int = 3
+
 var b int
+
 println(a)
 // Hello world 1
 var a int = 5
 c = 8
 var a int
+a=6
 for (a < b){
 a++
 }
@@ -27,3 +30,5 @@ n=60
 456464646456 15
 sadsadssads 16
 4564564 17*/
+
+

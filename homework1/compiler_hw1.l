@@ -43,7 +43,7 @@ ignore [\t\r\s]+|" "
 	if(doubleComment==1)commentline--;
 	}
 
-"/""*"[^*]*[*]+([^*/][^*]*[*]+)*"/" {
+"/""*"[^*]*[*]+([^*/][^*]*[*]+)*"/" {//註解
 		printf("%s \t C++ Comment \n",yytext);
 		commentline++;
 		//解決一行有兩個以上的註解
@@ -92,10 +92,14 @@ ignore [\t\r\s]+|" "
 	}
 	else{
 		printf("%s \t ID \n", yytext);
-		//查看是否是undefined variable
+		if(CreateTableFlag==0){//table連建都沒建 一定undefined
+		printf("Error:Undefined variable %s\n",yytext);
+		}
+		else{//否則查表看是否是undefined variable
 		CheckUndefined = 1;
 		lookup_symbol(yytext);
 		CheckUndefined = 0;		
+		}
 		
 	}
 
@@ -107,7 +111,7 @@ ignore [\t\r\s]+|" "
 "{"     { printf("%s \t LCB \n", yytext); }
 "}"     { printf("%s \t RCB \n", yytext); }
 
-\"{letter}+({letter}|{digit})*\" {
+\"[^\n"]+\" {
 		
 		printf("\" \t quotation \n");
 		int i ; 
@@ -204,13 +208,13 @@ int lookup_symbol(char *id) {
                         if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0)
                         	return 0;//表示有defined
 	
-        	printf("Undefined variable %s\n",id);
+        	printf("Error:Undefined variable %s\n",id);
 		return -1;//沒有defined
 	}
 	//查看是否redefined
 	for(i=0;i<TableSize;i++){
 			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0){
-			printf("Redefined variable %s,table index:%d\n",id,i);
+			printf("Error:Redefined variable %s,table index:%d\n",id,i+1);
 			return i;
 			}
 	}
@@ -220,13 +224,14 @@ void dump_symbol() {
 
 	printf("\nThe symbol table dump:\n");
 	int i ;
+	
 	for(i=0;i<TableSize;i++){
 		if(table[i]->vaild==1){
 		printf("%d\t%s\t%s\n",i+1,table[i]->id,table[i]->type);
 		}
 
-	}
 
+	}
 
 }
 
@@ -236,9 +241,11 @@ int main(int argc,char *argv[])
 	yyin = fopen(argv[1],"r");
 	yylex();
 	
-	printf("\ncomment: %d lines\n",commentline);
 	printf("\nParse over, the line number is %d\n",linecount);
-	dump_symbol();
+	printf("\ncomment: %d lines\n",commentline);
+
+	if(CreateTableFlag==1)//如果有建立symbol table
+		dump_symbol();
 
 	return 0;
 }
