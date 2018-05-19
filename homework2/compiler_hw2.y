@@ -42,8 +42,13 @@ void yyerror(char *);
 
 /* Using union to define nonterminal and token type */
 %union {
-    int i_val;
-    double f_val;
+	struct{
+		union{
+    		int	i_val;
+			double f_val;
+		};
+		int type;
+	}val;
     char *string;
 }
 
@@ -52,12 +57,12 @@ void yyerror(char *);
 %token IF ELSE FOR
 %token VAR NEWLINE
 %token ADD SUB MUL DIV MOD GT LTGE LE EQ NE
-%token LB RB INC DEC LT GE ASSIGN 
+%token '(' ')' INC DEC LT GE ASSIGN 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token AND OR NOT LB2 RB2
 /* Token with return, which need to sepcify type 這裡好像要跟上面的union一樣*/
-%token <i_val> I_CONST	
-%token <f_val> F_CONST
+%token <val> I_CONST	
+%token <val> F_CONST
 %token <string> STRING
 
 %token <string> INT
@@ -69,6 +74,15 @@ void yyerror(char *);
 
 /* Nonterminal with return, which need to sepcify type */
 %type <string> type 
+%type <val> arith
+/*associate*/
+
+
+%right ASSIGN
+%left ADD SUB
+%left MUL DIV
+%left UMINUS
+
 /* Yacc will start at this nonterminal */
 %start program
 
@@ -84,6 +98,21 @@ stat
     : declaration
     | print_func
 	| NEWLINE
+	| arith { printf("ans = %d\n", $1.i_val);FloatOrInt=-1;}
+;
+
+arith
+	: arith ADD arith	{ printf("%s\n","ADD");$$.i_val = $1.i_val + $3.i_val; }
+	| arith SUB arith   { printf("%s\n","SUB");$$.i_val = $1.i_val - $3.i_val;}
+	| arith MUL arith   { printf("%s\n","MUL");$$.i_val = $1.i_val * $3.i_val;}
+	| arith DIV arith   { printf("%s\n","DIV");$$.i_val = $1.i_val / $3.i_val;}
+	| arith MOD arith   { printf("%s\n","MOD");$$.i_val = $1.i_val % $3.i_val;}
+	| SUB arith %prec UMINUS	{$$.i_val = $2.i_val*(-1); }//優先處理因為代表負數
+	| ID ASSIGN arith      {;}
+	| '(' arith ')'     { $$.i_val = $2.i_val; }
+	| ID                { ;}
+	| I_CONST			{$$.i_val = $1.i_val;}
+	| F_CONST			{$$.i_val = $1.f_val;}
 ;
 
 declaration
@@ -105,21 +134,16 @@ type
     | VOID { $$ = $1; }
 ;
 initializer
-	: I_CONST {PassI=$1;FloatOrInt=1;}//{ $$ = $1; }
-	| F_CONST {PassF=$1;FloatOrInt=0;}//{ $$ = $1; }
-	| expression //{ $$ = $1; }
+	: I_CONST {PassI=$1.i_val;FloatOrInt=1;}
+	| F_CONST {PassF=$1.f_val;FloatOrInt=0;}
+	//| arith //{ $$ = $1; }
 ;
 
 
 print_func 
-	: PRINT LB STRING RB NEWLINE {printf("PRINT : %s\n",$3) ;}
-	| PRINTLN LB STRING RB NEWLINE {printf("PRINTLN : %s\n",$3) ;}
+	: PRINT '(' STRING ')' NEWLINE {printf("PRINT : %s\n",$3) ;}
+	| PRINTLN '(' STRING ')' NEWLINE {printf("PRINTLN : %s\n",$3) ;}
 ;
-
-expression
-	:
-;
-
 
 
 %%

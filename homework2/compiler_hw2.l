@@ -54,8 +54,8 @@ id			{letter}+({letter}|{digit})*
 "!"		{ return NOT; }
 
  /* Delimiters */
-"("		{ return LB; }
-")"		{ return RB; }
+"("		{ return '('; }
+")"		{ return ')'; }
 "{"		{ return LB2; }
 "}"		{ return RB2; }
 
@@ -81,8 +81,14 @@ id			{letter}+({letter}|{digit})*
 			return STRING;}
 
  /* Number Constant */
-{integer}	{ sscanf(yytext,"%d",&yylval.i_val);return I_CONST;}
-{double}	{ sscanf(yytext,"%lf",&yylval.f_val);return F_CONST;}
+{integer}	{ sscanf(yytext,"%d",&yylval.val.i_val);
+				yylval.val.type=1;
+				return I_CONST;
+			}
+{double}	{ sscanf(yytext,"%lf",&yylval.val.f_val);
+				yylval.val.type=0;
+				return F_CONST;
+			}
 
  /* C type Comment */
 "/""*"[^*]*[*]+([^*/][^*]*[*]+)*"/" {
