@@ -1,4 +1,5 @@
 print ("asdasd")
+println("sadasd")
 
 var a int
 var asdas int = 5

@@ -55,8 +55,6 @@ void yyerror(char *);
 %token LB RB INC DEC LT GE ASSIGN 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token AND OR NOT LB2 RB2
-
-
 /* Token with return, which need to sepcify type 這裡好像要跟上面的union一樣*/
 %token <i_val> I_CONST	
 %token <f_val> F_CONST
@@ -115,6 +113,7 @@ initializer
 
 print_func 
 	: PRINT LB STRING RB NEWLINE {printf("PRINT : %s\n",$3) ;}
+	| PRINTLN LB STRING RB NEWLINE {printf("PRINTLN : %s\n",$3) ;}
 ;
 
 expression
