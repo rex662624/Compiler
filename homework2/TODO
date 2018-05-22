@@ -2,3 +2,5 @@
 2.print 除了string 還有id
 3.複雜的那些算術
 4.type check
+
+作到完成type前置工作，已經有type在struct裡面標示了

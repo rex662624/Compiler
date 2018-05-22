@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 extern int yylineno;
 extern int yylex();
 void yyerror(char *);
@@ -19,10 +18,10 @@ void yyerror(char *);
 	void insert_symbol(char*,int);
 	int lookup_symbol(char*);
 	void dump_symbol();
-	int linecount=0;
-	int varflag=0;/*要開始宣告*/
-	char * nowid = NULL;
 	
+	int linecount=0;	
+	int commentline=0;
+
 	typedef struct symbol_table{
 	char* id;
 	char* type;
@@ -30,9 +29,7 @@ void yyerror(char *);
 	}symboltable;
 	symboltable* table[TableSize];
 	int CreateTableFlag=0;	
-	int commentline=0;
 	int CheckUndefined=0;
-	int doubleComment=0;//查看是否有同一行複數個comment
 
 	// new
 	int FloatOrInt=-1;//check值是float還是int
@@ -60,6 +57,7 @@ void yyerror(char *);
 %token '(' ')' INC DEC LT GE ASSIGN 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token AND OR NOT LB2 RB2
+%token C_COMMENT
 /* Token with return, which need to sepcify type 這裡好像要跟上面的union一樣*/
 %token <val> I_CONST	
 %token <val> F_CONST
@@ -98,21 +96,79 @@ stat
     : declaration
     | print_func
 	| NEWLINE
-	| arith { printf("ans = %d\n", $1.i_val);FloatOrInt=-1;}
+	| arith { if($1.type==1)//int
+				printf("ans = %d\n", $1.i_val);
+			else
+				printf("ans = %lf\n", $1.f_val);
+				FloatOrInt=-1;}
+	| C_COMMENT
 ;
 
 arith
-	: arith ADD arith	{ printf("%s\n","ADD");$$.i_val = $1.i_val + $3.i_val; }
-	| arith SUB arith   { printf("%s\n","SUB");$$.i_val = $1.i_val - $3.i_val;}
-	| arith MUL arith   { printf("%s\n","MUL");$$.i_val = $1.i_val * $3.i_val;}
-	| arith DIV arith   { printf("%s\n","DIV");$$.i_val = $1.i_val / $3.i_val;}
-	| arith MOD arith   { printf("%s\n","MOD");$$.i_val = $1.i_val % $3.i_val;}
+	: arith ADD arith	{ 
+						if ($1.type == 1 && $3.type == 1) {//integer
+                        $$.type = 1;
+                        $$.i_val = $1.i_val + $3.i_val;
+                      } else {//double
+                        double v1 = $1.type == 1 ? (double)$1.i_val
+                                                   : $1.f_val;
+                        double v2 = $3.type == 1 ? (double)$3.i_val
+                                                   : $3.f_val;
+                        $$.type = 0;
+                        $$.f_val = v1 + v2;
+                      }
+						printf("%s\n","ADD");}
+	| arith SUB arith   { 
+						if ($1.type == 1 && $3.type == 1) {//integer
+                        $$.type = 1;
+                        $$.i_val = $1.i_val - $3.i_val;
+                      } else {//double
+                        double v1 = $1.type == 1 ? (double)$1.i_val
+                                                   : $1.f_val;
+                        double v2 = $3.type == 1 ? (double)$3.i_val
+                                                   : $3.f_val;
+                        $$.type = 0;
+                        $$.f_val = v1 - v2;
+                      }
+						printf("%s\n","SUB");}
+	| arith MUL arith   { 
+						if ($1.type == 1 && $3.type == 1) {//integer
+                        $$.type = 1;
+                        $$.i_val = $1.i_val * $3.i_val;
+                      } else {//double
+                        double v1 = $1.type == 1 ? (double)$1.i_val
+                                                   : $1.f_val;
+                        double v2 = $3.type == 1 ? (double)$3.i_val
+                                                   : $3.f_val;
+                        $$.type = 0;
+                        $$.f_val = v1 * v2;
+                      }
+		
+							printf("%s\n","MUL");}
+	| arith DIV arith   { 
+
+					if ($1.type == 1 && $3.type == 1) {//integer
+                        $$.type = 1;
+                        $$.i_val = $1.i_val / $3.i_val;
+                      } else {//double
+                        double v1 = $1.type == 1 ? (double)$1.i_val
+                                                   : $1.f_val;
+                        double v2 = $3.type == 1 ? (double)$3.i_val
+                                                   : $3.f_val;
+                        $$.type = 0;
+                        $$.f_val = v1 / v2;
+                      }
+							printf("%s\n","DIV");}
+	| arith MOD arith   { 
+						printf("%s\n","MOD");
+
+						}
 	| SUB arith %prec UMINUS	{$$.i_val = $2.i_val*(-1); }//優先處理因為代表負數
 	| ID ASSIGN arith      {;}
 	| '(' arith ')'     { $$.i_val = $2.i_val; }
 	| ID                { ;}
 	| I_CONST			{$$.i_val = $1.i_val;}
-	| F_CONST			{$$.i_val = $1.f_val;}
+	| F_CONST			{$$.f_val = $1.f_val;}
 ;
 
 declaration
@@ -129,7 +185,7 @@ declaration
 ;
 
 type
-    : INT { $$ = $1; }
+    : INT { $$ = $1;}
     | FLOAT { $$ = $1; }
     | VOID { $$ = $1; }
 ;
@@ -154,6 +210,13 @@ int main(int argc, char** argv)
     yylineno = 0;
     yyparse();
 
+	printf("\nParse over, the line number is %d\n",linecount);
+	printf("\ncomment: %d lines\n",commentline);
+
+	if(CreateTableFlag==1)//如果有建立symbol table
+		dump_symbol();
+
+	
     return 0;
 }
 
