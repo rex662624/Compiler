@@ -3,4 +3,6 @@
 3.複雜的那些算術
 4.type check
 
-作到完成type前置工作，已經有type在struct裡面標示了
+下次開始要解declare Void 變數會變float的問題
+還有 int a =5.5這種type checking
+還有插入值在table中

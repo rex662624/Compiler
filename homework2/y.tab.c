@@ -76,7 +76,7 @@ void yyerror(char *);
 //原來的 lex
 	#include <stdio.h>
 	#include <stdlib.h>
-	#define TableSize 100
+	#define TableSize 50000
 	/* Symbol table function */
 	void create_symbol();
 	void insert_symbol(char*,int);
@@ -89,6 +89,10 @@ void yyerror(char *);
 	typedef struct symbol_table{
 	char* id;
 	char* type;
+	union{
+ 			int i_val;
+ 			double f_val;
+ 	};
 	int vaild;
 	}symboltable;
 	symboltable* table[TableSize];
@@ -100,7 +104,7 @@ void yyerror(char *);
 	double PassF;
 	int PassI;
 
-#line 104 "y.tab.c" /* yacc.c:339  */
+#line 108 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -226,7 +230,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 41 "compiler_hw2.y" /* yacc.c:355  */
+#line 45 "compiler_hw2.y" /* yacc.c:355  */
 
 	struct{
 		union{
@@ -237,7 +241,7 @@ union YYSTYPE
 	}val;
     char *string;
 
-#line 241 "y.tab.c" /* yacc.c:355  */
+#line 245 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -254,7 +258,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 258 "y.tab.c" /* yacc.c:358  */
+#line 262 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -555,9 +559,9 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    91,    91,    92,    96,    97,    98,    99,   104,   108,
-     121,   122,   123,   124,   125,   126,   127,   128,   129,   130,
-     134,   135,   147,   148,   149,   152,   153,   159,   160
+       0,    95,    95,    96,   100,   101,   102,   103,   108,   112,
+     125,   138,   152,   166,   177,   178,   187,   188,   196,   197,
+     201,   205,   219,   220,   221,   224,   225,   231,   232
 };
 #endif
 
@@ -1361,17 +1365,17 @@ yyreduce:
   switch (yyn)
     {
         case 7:
-#line 99 "compiler_hw2.y" /* yacc.c:1646  */
+#line 103 "compiler_hw2.y" /* yacc.c:1646  */
     { if((yyvsp[0].val).type==1)//int
 				printf("ans = %d\n", (yyvsp[0].val).i_val);
 			else
 				printf("ans = %lf\n", (yyvsp[0].val).f_val);
 				FloatOrInt=-1;}
-#line 1371 "y.tab.c" /* yacc.c:1646  */
+#line 1375 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 108 "compiler_hw2.y" /* yacc.c:1646  */
+#line 112 "compiler_hw2.y" /* yacc.c:1646  */
     { 
 						if ((yyvsp[-2].val).type == 1 && (yyvsp[0].val).type == 1) {//integer
                         (yyval.val).type = 1;
@@ -1385,133 +1389,201 @@ yyreduce:
                         (yyval.val).f_val = v1 + v2;
                       }
 						printf("%s\n","ADD");}
-#line 1389 "y.tab.c" /* yacc.c:1646  */
+#line 1393 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 121 "compiler_hw2.y" /* yacc.c:1646  */
-    { printf("%s\n","SUB");(yyval.val).i_val = (yyvsp[-2].val).i_val - (yyvsp[0].val).i_val;}
-#line 1395 "y.tab.c" /* yacc.c:1646  */
+#line 125 "compiler_hw2.y" /* yacc.c:1646  */
+    { 
+						if ((yyvsp[-2].val).type == 1 && (yyvsp[0].val).type == 1) {//integer
+                        (yyval.val).type = 1;
+                        (yyval.val).i_val = (yyvsp[-2].val).i_val - (yyvsp[0].val).i_val;
+                      } else {//double
+                        double v1 = (yyvsp[-2].val).type == 1 ? (double)(yyvsp[-2].val).i_val
+                                                   : (yyvsp[-2].val).f_val;
+                        double v2 = (yyvsp[0].val).type == 1 ? (double)(yyvsp[0].val).i_val
+                                                   : (yyvsp[0].val).f_val;
+                        (yyval.val).type = 0;
+                        (yyval.val).f_val = v1 - v2;
+                      }
+						printf("%s\n","SUB");}
+#line 1411 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 122 "compiler_hw2.y" /* yacc.c:1646  */
-    { printf("%s\n","MUL");(yyval.val).f_val = (yyvsp[-2].val).f_val * (yyvsp[0].val).f_val;}
-#line 1401 "y.tab.c" /* yacc.c:1646  */
+#line 138 "compiler_hw2.y" /* yacc.c:1646  */
+    { 
+						if ((yyvsp[-2].val).type == 1 && (yyvsp[0].val).type == 1) {//integer
+                        (yyval.val).type = 1;
+                        (yyval.val).i_val = (yyvsp[-2].val).i_val * (yyvsp[0].val).i_val;
+                      } else {//double
+                        double v1 = (yyvsp[-2].val).type == 1 ? (double)(yyvsp[-2].val).i_val
+                                                   : (yyvsp[-2].val).f_val;
+                        double v2 = (yyvsp[0].val).type == 1 ? (double)(yyvsp[0].val).i_val
+                                                   : (yyvsp[0].val).f_val;
+                        (yyval.val).type = 0;
+                        (yyval.val).f_val = v1 * v2;
+                      }
+		
+							printf("%s\n","MUL");}
+#line 1430 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 123 "compiler_hw2.y" /* yacc.c:1646  */
-    { printf("%s\n","DIV");(yyval.val).i_val = (yyvsp[-2].val).i_val / (yyvsp[0].val).i_val;}
-#line 1407 "y.tab.c" /* yacc.c:1646  */
-    break;
+#line 152 "compiler_hw2.y" /* yacc.c:1646  */
+    { 
 
-  case 13:
-#line 124 "compiler_hw2.y" /* yacc.c:1646  */
-    { printf("%s\n","MOD");(yyval.val).i_val = (yyvsp[-2].val).i_val % (yyvsp[0].val).i_val;}
-#line 1413 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 14:
-#line 125 "compiler_hw2.y" /* yacc.c:1646  */
-    {(yyval.val).i_val = (yyvsp[0].val).i_val*(-1); }
-#line 1419 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 15:
-#line 126 "compiler_hw2.y" /* yacc.c:1646  */
-    {;}
-#line 1425 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 16:
-#line 127 "compiler_hw2.y" /* yacc.c:1646  */
-    { (yyval.val).i_val = (yyvsp[-1].val).i_val; }
-#line 1431 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 17:
-#line 128 "compiler_hw2.y" /* yacc.c:1646  */
-    { ;}
-#line 1437 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 18:
-#line 129 "compiler_hw2.y" /* yacc.c:1646  */
-    {(yyval.val).i_val = (yyvsp[0].val).i_val;}
-#line 1443 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 19:
-#line 130 "compiler_hw2.y" /* yacc.c:1646  */
-    {(yyval.val).f_val = (yyvsp[0].val).f_val;}
+					if ((yyvsp[-2].val).type == 1 && (yyvsp[0].val).type == 1) {//integer
+                        (yyval.val).type = 1;
+                        (yyval.val).i_val = (yyvsp[-2].val).i_val / (yyvsp[0].val).i_val;
+                      } else {//double
+                        double v1 = (yyvsp[-2].val).type == 1 ? (double)(yyvsp[-2].val).i_val
+                                                   : (yyvsp[-2].val).f_val;
+                        double v2 = (yyvsp[0].val).type == 1 ? (double)(yyvsp[0].val).i_val
+                                                   : (yyvsp[0].val).f_val;
+                        (yyval.val).type = 0;
+                        (yyval.val).f_val = v1 / v2;
+                      }
+							printf("%s\n","DIV");}
 #line 1449 "y.tab.c" /* yacc.c:1646  */
     break;
 
+  case 13:
+#line 166 "compiler_hw2.y" /* yacc.c:1646  */
+    { 
+					  if ((yyvsp[-2].val).type == 1 && (yyvsp[0].val).type == 1) {//integer
+                        (yyval.val).type = 1;
+                        (yyval.val).i_val = (yyvsp[-2].val).i_val % (yyvsp[0].val).i_val;
+						printf("%s\n","MOD");
+                      } else {//double
+						printf("ERROR:The modulo does not involve any floating-points\n");
+                      (yyval.val).i_val=0;(yyval.val).type = 1;
+						}
+
+						}
+#line 1465 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 14:
+#line 177 "compiler_hw2.y" /* yacc.c:1646  */
+    {(yyval.val).i_val = (yyvsp[0].val).i_val*(-1); }
+#line 1471 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 15:
+#line 178 "compiler_hw2.y" /* yacc.c:1646  */
+    {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol((yyvsp[-2].string));
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",(yyvsp[-2].string));
+
+							}
+#line 1485 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 16:
+#line 187 "compiler_hw2.y" /* yacc.c:1646  */
+    { (yyval.val).i_val = (yyvsp[-1].val).i_val; }
+#line 1491 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 17:
+#line 188 "compiler_hw2.y" /* yacc.c:1646  */
+    {							
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol((yyvsp[0].string));
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",(yyvsp[0].string)) ;
+						}
+#line 1504 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 18:
+#line 196 "compiler_hw2.y" /* yacc.c:1646  */
+    {(yyval.val).i_val = (yyvsp[0].val).i_val;}
+#line 1510 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 19:
+#line 197 "compiler_hw2.y" /* yacc.c:1646  */
+    {(yyval.val).f_val = (yyvsp[0].val).f_val;}
+#line 1516 "y.tab.c" /* yacc.c:1646  */
+    break;
+
   case 20:
-#line 134 "compiler_hw2.y" /* yacc.c:1646  */
-    {printf("declare : %s %s\n",(yyvsp[-2].string),(yyvsp[-1].string)) ;}
-#line 1455 "y.tab.c" /* yacc.c:1646  */
+#line 201 "compiler_hw2.y" /* yacc.c:1646  */
+    {
+							printf("declare : %s %s\n",(yyvsp[-2].string),(yyvsp[-1].string)) ;
+							strcmp((yyvsp[-1].string),"int")==0?insert_symbol((yyvsp[-2].string),1):insert_symbol((yyvsp[-2].string),0);
+						}
+#line 1525 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 135 "compiler_hw2.y" /* yacc.c:1646  */
+#line 205 "compiler_hw2.y" /* yacc.c:1646  */
     {
 				if(FloatOrInt==0){//float
 					printf("declare : %s %s %lf\n",(yyvsp[-4].string),(yyvsp[-3].string),PassF) ;
+					insert_symbol((yyvsp[-4].string),0);
 					FloatOrInt=-1;
 				}else if(FloatOrInt==1){//int
 					printf("declare : %s %s %d\n",(yyvsp[-4].string),(yyvsp[-3].string),PassI) ;
+					insert_symbol((yyvsp[-4].string),1);
 					FloatOrInt=-1;
 					}
 			}
-#line 1469 "y.tab.c" /* yacc.c:1646  */
+#line 1541 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 147 "compiler_hw2.y" /* yacc.c:1646  */
+#line 219 "compiler_hw2.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string);}
-#line 1475 "y.tab.c" /* yacc.c:1646  */
+#line 1547 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 148 "compiler_hw2.y" /* yacc.c:1646  */
+#line 220 "compiler_hw2.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string); }
-#line 1481 "y.tab.c" /* yacc.c:1646  */
+#line 1553 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 149 "compiler_hw2.y" /* yacc.c:1646  */
+#line 221 "compiler_hw2.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string); }
-#line 1487 "y.tab.c" /* yacc.c:1646  */
+#line 1559 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 152 "compiler_hw2.y" /* yacc.c:1646  */
+#line 224 "compiler_hw2.y" /* yacc.c:1646  */
     {PassI=(yyvsp[0].val).i_val;FloatOrInt=1;}
-#line 1493 "y.tab.c" /* yacc.c:1646  */
+#line 1565 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 153 "compiler_hw2.y" /* yacc.c:1646  */
+#line 225 "compiler_hw2.y" /* yacc.c:1646  */
     {PassF=(yyvsp[0].val).f_val;FloatOrInt=0;}
-#line 1499 "y.tab.c" /* yacc.c:1646  */
+#line 1571 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 159 "compiler_hw2.y" /* yacc.c:1646  */
+#line 231 "compiler_hw2.y" /* yacc.c:1646  */
     {printf("PRINT : %s\n",(yyvsp[-2].string)) ;}
-#line 1505 "y.tab.c" /* yacc.c:1646  */
+#line 1577 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 160 "compiler_hw2.y" /* yacc.c:1646  */
+#line 232 "compiler_hw2.y" /* yacc.c:1646  */
     {printf("PRINTLN : %s\n",(yyvsp[-2].string)) ;}
-#line 1511 "y.tab.c" /* yacc.c:1646  */
+#line 1583 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1515 "y.tab.c" /* yacc.c:1646  */
+#line 1587 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1739,7 +1811,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 164 "compiler_hw2.y" /* yacc.c:1906  */
+#line 236 "compiler_hw2.y" /* yacc.c:1906  */
 
 
 /* C code section */
@@ -1782,9 +1854,9 @@ void insert_symbol(char* id , int type) {
 		table[0]->vaild = 1 ;//vaild表示有symbol在表中
 		printf("Insert a symbol: %s\n",id);
 
-		if(type==0)//int
+		if(type==1)//int
 			table[0]->type="int";
-		else if(type==1)//float
+		else if(type==0)//float
 			table[0]->type="float32";
 	}
 	else{
@@ -1797,9 +1869,9 @@ void insert_symbol(char* id , int type) {
 				table[i]->vaild = 1 ;//vaild表示有symbol在表中
 				printf("Insert a symbol: %s\n",id);
 				
-		                if(type==0)//int
+		                if(type==1)//int
 	                	        table[i]->type="int";
-        		        else if(type==1)//float
+        		        else if(type==0)//float
                         		table[i]->type="float32";
 			
 				return;
@@ -1808,24 +1880,28 @@ void insert_symbol(char* id , int type) {
 	}
 
 }
-int lookup_symbol(char *id) {
+int lookup_symbol(char *id) {//command=0:declare command=1:取出var
 	int i;
 	//查看是否undefined
-	if(CheckUndefined){
+	if(CreateTableFlag==0)return -1;
+	if(CheckUndefined==1){//表示是要取出id,是非宣告狀態（宣告狀態是要去看下面的redefined）
 		for(i=0;i<TableSize;i++)
                         if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0)
-                        	return 0;//表示有defined
+                        	return i;//表示有defined
 	
-        	printf("Error:Undefined variable %s\n",id);
+//        	printf("Error:Undefined variable %s\n",id);
 		return -1;//沒有defined
 	}
+	
 	//查看是否redefined
 	for(i=0;i<TableSize;i++){
 			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0){
+			
 			printf("Error:Redefined variable %s,table index:%d\n",id,i+1);
 			return i;
 			}
 	}
+	
 	return -1;
 }
 void dump_symbol() {

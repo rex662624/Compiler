@@ -12,7 +12,7 @@ void yyerror(char *);
 //原來的 lex
 	#include <stdio.h>
 	#include <stdlib.h>
-	#define TableSize 100
+	#define TableSize 50000
 	/* Symbol table function */
 	void create_symbol();
 	void insert_symbol(char*,int);
@@ -25,6 +25,10 @@ void yyerror(char *);
 	typedef struct symbol_table{
 	char* id;
 	char* type;
+	union{
+ 			int i_val;
+ 			double f_val;
+ 	};
 	int vaild;
 	}symboltable;
 	symboltable* table[TableSize];
@@ -160,25 +164,52 @@ arith
                       }
 							printf("%s\n","DIV");}
 	| arith MOD arith   { 
+					  if ($1.type == 1 && $3.type == 1) {//integer
+                        $$.type = 1;
+                        $$.i_val = $1.i_val % $3.i_val;
 						printf("%s\n","MOD");
+                      } else {//double
+						printf("ERROR:The modulo does not involve any floating-points\n");
+                      $$.i_val=0;$$.type = 1;
+						}
 
 						}
 	| SUB arith %prec UMINUS	{$$.i_val = $2.i_val*(-1); }//優先處理因為代表負數
-	| ID ASSIGN arith      {;}
+	| ID ASSIGN arith      {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1);
+
+							}
 	| '(' arith ')'     { $$.i_val = $2.i_val; }
-	| ID                { ;}
+	| ID                {							
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1) ;
+						}
 	| I_CONST			{$$.i_val = $1.i_val;}
 	| F_CONST			{$$.f_val = $1.f_val;}
 ;
 
 declaration
-	: VAR ID type NEWLINE {printf("declare : %s %s\n",$2,$3) ;}
+	: VAR ID type NEWLINE {
+							printf("declare : %s %s\n",$2,$3) ;
+							strcmp($3,"int")==0?insert_symbol($2,1):insert_symbol($2,0);
+						}
 	| VAR ID type ASSIGN initializer NEWLINE {
 				if(FloatOrInt==0){//float
 					printf("declare : %s %s %lf\n",$2,$3,PassF) ;
+					insert_symbol($2,0);
 					FloatOrInt=-1;
 				}else if(FloatOrInt==1){//int
 					printf("declare : %s %s %d\n",$2,$3,PassI) ;
+					insert_symbol($2,1);
 					FloatOrInt=-1;
 					}
 			}//這裡要做type chexk
@@ -244,9 +275,9 @@ void insert_symbol(char* id , int type) {
 		table[0]->vaild = 1 ;//vaild表示有symbol在表中
 		printf("Insert a symbol: %s\n",id);
 
-		if(type==0)//int
+		if(type==1)//int
 			table[0]->type="int";
-		else if(type==1)//float
+		else if(type==0)//float
 			table[0]->type="float32";
 	}
 	else{
@@ -259,9 +290,9 @@ void insert_symbol(char* id , int type) {
 				table[i]->vaild = 1 ;//vaild表示有symbol在表中
 				printf("Insert a symbol: %s\n",id);
 				
-		                if(type==0)//int
+		                if(type==1)//int
 	                	        table[i]->type="int";
-        		        else if(type==1)//float
+        		        else if(type==0)//float
                         		table[i]->type="float32";
 			
 				return;
@@ -270,24 +301,28 @@ void insert_symbol(char* id , int type) {
 	}
 
 }
-int lookup_symbol(char *id) {
+int lookup_symbol(char *id) {//command=0:declare command=1:取出var
 	int i;
 	//查看是否undefined
-	if(CheckUndefined){
+	if(CreateTableFlag==0)return -1;
+	if(CheckUndefined==1){//表示是要取出id,是非宣告狀態（宣告狀態是要去看下面的redefined）
 		for(i=0;i<TableSize;i++)
                         if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0)
-                        	return 0;//表示有defined
+                        	return i;//表示有defined
 	
-        	printf("Error:Undefined variable %s\n",id);
+//        	printf("Error:Undefined variable %s\n",id);
 		return -1;//沒有defined
 	}
+	
 	//查看是否redefined
 	for(i=0;i<TableSize;i++){
 			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0){
+			
 			printf("Error:Redefined variable %s,table index:%d\n",id,i+1);
 			return i;
 			}
 	}
+	
 	return -1;
 }
 void dump_symbol() {

@@ -578,15 +578,19 @@ char *yytext;
 	extern int commentline; 
 	int varflag=0;/*要開始宣告*/
 	char * nowid = NULL;
-		
+	typedef struct symbol_table{
+    	char* id;
+    	char* type;
+    	union{
+    		int i_val;
+    		double f_val;
+    	};
+		int vaild;
+ 	}symboltable;
 
 	
-	typedef struct symbol_table{
-	char* id;
-	char* type;
-	int vaild;
-	}symboltable;
-	symboltable* table[TableSize];
+	extern symboltable* table[TableSize];
+		
 	extern int CreateTableFlag;	
 	extern int CheckUndefined;
 	int doubleComment=0;//查看是否有同一行複數個comment
@@ -600,7 +604,7 @@ char *yytext;
 /* Define regular expression label */
 
 /* Rules section */
-#line 604 "lex.yy.c"
+#line 608 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -820,11 +824,11 @@ YY_DECL
 		}
 
 	{
-#line 55 "compiler_hw2.l"
+#line 59 "compiler_hw2.l"
 
 
  /* Arithmetic */
-#line 828 "lex.yy.c"
+#line 832 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -893,208 +897,190 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 58 "compiler_hw2.l"
+#line 62 "compiler_hw2.l"
 { return ADD; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 59 "compiler_hw2.l"
+#line 63 "compiler_hw2.l"
 { return SUB; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 60 "compiler_hw2.l"
+#line 64 "compiler_hw2.l"
 { return MUL; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 61 "compiler_hw2.l"
+#line 65 "compiler_hw2.l"
 { return DIV; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 62 "compiler_hw2.l"
+#line 66 "compiler_hw2.l"
 { return MOD; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 63 "compiler_hw2.l"
+#line 67 "compiler_hw2.l"
 { return INC; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 64 "compiler_hw2.l"
+#line 68 "compiler_hw2.l"
 { return DEC; }
 	YY_BREAK
 /* Relational */
 case 8:
 YY_RULE_SETUP
-#line 67 "compiler_hw2.l"
+#line 71 "compiler_hw2.l"
 { return GT; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 68 "compiler_hw2.l"
+#line 72 "compiler_hw2.l"
 { return LT; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 69 "compiler_hw2.l"
+#line 73 "compiler_hw2.l"
 { return GE; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 70 "compiler_hw2.l"
+#line 74 "compiler_hw2.l"
 { return LE; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 71 "compiler_hw2.l"
+#line 75 "compiler_hw2.l"
 { return EQ; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 72 "compiler_hw2.l"
+#line 76 "compiler_hw2.l"
 { return NE; }
 	YY_BREAK
 /* Assignment */
 case 14:
 YY_RULE_SETUP
-#line 75 "compiler_hw2.l"
+#line 79 "compiler_hw2.l"
 { return ASSIGN; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 76 "compiler_hw2.l"
+#line 80 "compiler_hw2.l"
 { return ADD_ASSIGN; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 77 "compiler_hw2.l"
+#line 81 "compiler_hw2.l"
 { return SUB_ASSIGN; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 78 "compiler_hw2.l"
+#line 82 "compiler_hw2.l"
 { return MUL_ASSIGN; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 79 "compiler_hw2.l"
+#line 83 "compiler_hw2.l"
 { return DIV_ASSIGN; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 80 "compiler_hw2.l"
+#line 84 "compiler_hw2.l"
 { return MOD_ASSIGN; }
 	YY_BREAK
 /* Logical */
 case 20:
 YY_RULE_SETUP
-#line 83 "compiler_hw2.l"
+#line 87 "compiler_hw2.l"
 { return AND; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 84 "compiler_hw2.l"
+#line 88 "compiler_hw2.l"
 { return OR; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 85 "compiler_hw2.l"
+#line 89 "compiler_hw2.l"
 { return NOT; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 88 "compiler_hw2.l"
+#line 92 "compiler_hw2.l"
 { return '('; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 89 "compiler_hw2.l"
+#line 93 "compiler_hw2.l"
 { return ')'; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 90 "compiler_hw2.l"
+#line 94 "compiler_hw2.l"
 { return LB2; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 91 "compiler_hw2.l"
+#line 95 "compiler_hw2.l"
 { return RB2; }
 	YY_BREAK
 /* Print Keywords */	
 case 27:
 YY_RULE_SETUP
-#line 95 "compiler_hw2.l"
+#line 99 "compiler_hw2.l"
 {return PRINT;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 96 "compiler_hw2.l"
+#line 100 "compiler_hw2.l"
 { return PRINTLN; }
 	YY_BREAK
 /* Condition and Loop Keywords */
 case 29:
 YY_RULE_SETUP
-#line 99 "compiler_hw2.l"
+#line 103 "compiler_hw2.l"
 { return IF; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 100 "compiler_hw2.l"
+#line 104 "compiler_hw2.l"
 { return ELSE; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 101 "compiler_hw2.l"
+#line 105 "compiler_hw2.l"
 { return FOR; }
 	YY_BREAK
 /* Declaration Keywords */
 case 32:
 YY_RULE_SETUP
-#line 105 "compiler_hw2.l"
+#line 109 "compiler_hw2.l"
 {varflag = 1 ;AllocAndCopy(yytext); 
 	//	printf("--------------VAR\n");
 			return VAR;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 108 "compiler_hw2.l"
+#line 112 "compiler_hw2.l"
 {AllocAndCopy(yytext); return VOID;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 109 "compiler_hw2.l"
-{
-		
-		if(varflag==1){
-//			printf("%s \t int TYPE VAR\n",nowid);
-			insert_symbol(nowid,0);
-		}	
-		varflag=0;free(nowid);
-		AllocAndCopy(yytext); 
-	//	printf("-----------------INT\n");	
-		return INT;
-	}
+#line 113 "compiler_hw2.l"
+{AllocAndCopy(yytext); return INT;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 120 "compiler_hw2.l"
-{
-                if(varflag==1){
-//	                printf("%s \t float TYPE VAR\n",nowid);
-			insert_symbol(nowid,1);
-                }
-            varflag=0;free(nowid);
-			AllocAndCopy(yytext); return FLOAT;
-
-        }
+#line 114 "compiler_hw2.l"
+{AllocAndCopy(yytext); return FLOAT;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 131 "compiler_hw2.l"
+#line 117 "compiler_hw2.l"
 {
 			//防止memory leak 再重新malloc 並copy
 			AllocAndCopy(yytext);
@@ -1102,7 +1088,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 136 "compiler_hw2.l"
+#line 122 "compiler_hw2.l"
 { sscanf(yytext,"%d",&yylval.val.i_val);
 				yylval.val.type=1;
 				return I_CONST;
@@ -1110,7 +1096,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 140 "compiler_hw2.l"
+#line 126 "compiler_hw2.l"
 { sscanf(yytext,"%lf",&yylval.val.f_val);
 				yylval.val.type=0;
 				return F_CONST;
@@ -1118,7 +1104,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 149 "compiler_hw2.l"
+#line 135 "compiler_hw2.l"
 {printf("%s \t C++ Comment \n",yytext);commentline++;
 	if(doubleComment==1)commentline--;
 	
@@ -1128,7 +1114,7 @@ YY_RULE_SETUP
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 155 "compiler_hw2.l"
+#line 141 "compiler_hw2.l"
 {//註解
 		printf("%s \t C++ Comment \n",yytext);
 		commentline++;
@@ -1149,58 +1135,42 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 173 "compiler_hw2.l"
+#line 159 "compiler_hw2.l"
 {
-	if(varflag==1){//如果是宣告
-		nowid = malloc(strlen(yytext)+1);
-		strcpy(nowid,yytext);
-	}
-	else{
-		printf("%s \t ID \n", yytext);
-		if(CreateTableFlag==0){//table連建都沒建 一定undefined
-		printf("Error:Undefined variable %s\n",yytext);
-		}
-		else{//否則查表看是否是undefined variable
-		CheckUndefined = 1;
-		lookup_symbol(yytext);
-		CheckUndefined = 0;		
-		}
-		printf("-------------ID\n");	
-	}
 	AllocAndCopy(yytext);return ID;
 	}
 	YY_BREAK
 case 42:
 /* rule 42 can match eol */
 YY_RULE_SETUP
-#line 195 "compiler_hw2.l"
+#line 165 "compiler_hw2.l"
 {linecount++; varflag = 0;nowid=NULL;doubleComment=0;
 				yylineno++;
 				return NEWLINE;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 198 "compiler_hw2.l"
+#line 168 "compiler_hw2.l"
 {;} /* Ignore */
 	YY_BREAK
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 199 "compiler_hw2.l"
+#line 169 "compiler_hw2.l"
 {;} /* Ignore other charactor sets */
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(STRING_STATE):
-#line 200 "compiler_hw2.l"
+#line 170 "compiler_hw2.l"
 {yyterminate();}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 204 "compiler_hw2.l"
+#line 174 "compiler_hw2.l"
 ECHO;
 	YY_BREAK
-#line 1204 "lex.yy.c"
+#line 1174 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2211,7 +2181,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 204 "compiler_hw2.l"
+#line 174 "compiler_hw2.l"
 
 
 

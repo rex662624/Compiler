@@ -16,15 +16,19 @@
 	extern int commentline; 
 	int varflag=0;/*要開始宣告*/
 	char * nowid = NULL;
-		
+	typedef struct symbol_table{
+    	char* id;
+    	char* type;
+    	union{
+    		int i_val;
+    		double f_val;
+    	};
+		int vaild;
+ 	}symboltable;
 
 	
-	typedef struct symbol_table{
-	char* id;
-	char* type;
-	int vaild;
-	}symboltable;
-	symboltable* table[TableSize];
+	extern symboltable* table[TableSize];
+		
 	extern int CreateTableFlag;	
 	extern int CheckUndefined;
 	int doubleComment=0;//查看是否有同一行複數個comment
@@ -106,26 +110,8 @@ double {digit}+"."{digit}+
 	//	printf("--------------VAR\n");
 			return VAR;}
 "void"    {AllocAndCopy(yytext); return VOID;}
-"int"     {
-		
-		if(varflag==1){
-//			printf("%s \t int TYPE VAR\n",nowid);
-			insert_symbol(nowid,0);
-		}	
-		varflag=0;free(nowid);
-		AllocAndCopy(yytext); 
-	//	printf("-----------------INT\n");	
-		return INT;
-	}
-"float32" {
-                if(varflag==1){
-//	                printf("%s \t float TYPE VAR\n",nowid);
-			insert_symbol(nowid,1);
-                }
-            varflag=0;free(nowid);
-			AllocAndCopy(yytext); return FLOAT;
-
-        }
+"int"     {AllocAndCopy(yytext); return INT;}
+"float32" {AllocAndCopy(yytext); return FLOAT;}
 
 
 \"[^\n"]+\" {
@@ -171,22 +157,6 @@ double {digit}+"."{digit}+
 		}
 
 {id}	{
-	if(varflag==1){//如果是宣告
-		nowid = malloc(strlen(yytext)+1);
-		strcpy(nowid,yytext);
-	}
-	else{
-		printf("%s \t ID \n", yytext);
-		if(CreateTableFlag==0){//table連建都沒建 一定undefined
-		printf("Error:Undefined variable %s\n",yytext);
-		}
-		else{//否則查表看是否是undefined variable
-		CheckUndefined = 1;
-		lookup_symbol(yytext);
-		CheckUndefined = 0;		
-		}
-		printf("-------------ID\n");	
-	}
 	AllocAndCopy(yytext);return ID;
 	}
 
