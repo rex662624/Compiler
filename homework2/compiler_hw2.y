@@ -15,10 +15,10 @@ void yyerror(char *);
 	#define TableSize 50000
 	/* Symbol table function */
 	void create_symbol();
-	void insert_symbol(char*,int);
+	int insert_symbol(char*,int);
 	int lookup_symbol(char*);
 	void dump_symbol();
-	
+	void insert_value(int ret , int i_val ,double f_val);
 	int linecount=0;	
 	int commentline=0;
 
@@ -36,9 +36,6 @@ void yyerror(char *);
 	int CheckUndefined=0;
 
 	// new
-	int FloatOrInt=-1;//check值是float還是int
-	double PassF;
-	int PassI;
 %}
 
 /* Using union to define nonterminal and token type */
@@ -77,6 +74,7 @@ void yyerror(char *);
 /* Nonterminal with return, which need to sepcify type */
 %type <string> type 
 %type <val> arith
+%type <val> initializer
 /*associate*/
 
 
@@ -104,7 +102,7 @@ stat
 				printf("ans = %d\n", $1.i_val);
 			else
 				printf("ans = %lf\n", $1.f_val);
-				FloatOrInt=-1;}
+			}
 	| C_COMMENT
 ;
 
@@ -182,6 +180,14 @@ arith
 							CheckUndefined = 0;
 							if(ret==-1)
 								printf("Error:Undefined variable %s\n",$1);
+							else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								insert_value(ret,$3.f_val,0);
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								insert_value(ret,0.0,$3.i_val);
+								}
+							}
 
 							}
 	| '(' arith ')'     { $$.i_val = $2.i_val; }
@@ -192,9 +198,21 @@ arith
 							CheckUndefined = 0;
 							if(ret==-1)
 								printf("Error:Undefined variable %s\n",$1) ;
+							else{
+								if(strcmp(table[ret]->type,"float32")==0)
+								{
+									$$.f_val=table[ret]->f_val;
+									$$.type=0;
+								}
+								else if(strcmp(table[ret]->type,"int")==0)
+								{
+									$$.i_val=table[ret]->i_val;
+									$$.type=1;
+								}
+							}
 						}
-	| I_CONST			{$$.i_val = $1.i_val;}
-	| F_CONST			{$$.f_val = $1.f_val;}
+	| I_CONST			{$$.i_val = $1.i_val; $$.type=1;}
+	| F_CONST			{$$.f_val = $1.f_val; $$.type=0;}
 ;
 
 declaration
@@ -203,14 +221,16 @@ declaration
 							strcmp($3,"int")==0?insert_symbol($2,1):insert_symbol($2,0);
 						}
 	| VAR ID type ASSIGN initializer NEWLINE {
-				if(FloatOrInt==0){//float
-					printf("declare : %s %s %lf\n",$2,$3,PassF) ;
-					insert_symbol($2,0);
-					FloatOrInt=-1;
-				}else if(FloatOrInt==1){//int
-					printf("declare : %s %s %d\n",$2,$3,PassI) ;
-					insert_symbol($2,1);
-					FloatOrInt=-1;
+				if(strcmp($3,"float32")==0){//float
+					int ret;
+					printf("declare : %s %s %lf\n",$2,$3,$5.f_val) ;
+					ret = insert_symbol($2,0);
+					insert_value(ret,0,$5.f_val);
+				}else if(strcmp($3,"int")==0){//int
+					int ret;
+					printf("declare : %s %s %d\n",$2,$3,$5.i_val) ;
+					ret = insert_symbol($2,1);
+					insert_value(ret,$5.i_val,0.0);
 					}
 			}//這裡要做type chexk
 ;
@@ -221,9 +241,17 @@ type
     | VOID { $$ = $1; }
 ;
 initializer
-	: I_CONST {PassI=$1.i_val;FloatOrInt=1;}
-	| F_CONST {PassF=$1.f_val;FloatOrInt=0;}
-	//| arith //{ $$ = $1; }
+	: arith   { 
+				if($1.type==0)//double
+				{
+					$$.type=0;
+					$$.f_val=$1.f_val;
+				}
+				else{//int
+					$$.type=1;
+					$$.i_val=$1.i_val;
+				}
+			}
 ;
 
 
@@ -267,7 +295,8 @@ void create_symbol()
 	}	
 
 }
-void insert_symbol(char* id , int type) {
+int insert_symbol(char* id , int type) {
+
 	if(CreateTableFlag==0){//not create table yet
 		create_symbol();
 		table[0]->id = malloc(strlen(id)+1);
@@ -279,6 +308,8 @@ void insert_symbol(char* id , int type) {
 			table[0]->type="int";
 		else if(type==0)//float
 			table[0]->type="float32";
+
+		return 0;
 	}
 	else{
 		if(lookup_symbol(id)==-1){//not declare yet(id not in symbol table)
@@ -295,10 +326,30 @@ void insert_symbol(char* id , int type) {
         		        else if(type==0)//float
                         		table[i]->type="float32";
 			
-				return;
+				return i;
 			}
 		}
 	}
+	return -1;
+
+}
+
+void insert_value(int ret , int i_val ,double f_val){
+		if(CreateTableFlag==0)return ;
+		if(ret==-1)
+			return;
+		else{
+			if(table[ret]->vaild==1&&strcmp(table[ret]->type,"float32")==0)
+			{
+				table[ret]->f_val=f_val;
+			}
+			else if(table[ret]->vaild==1&&strcmp(table[ret]->type,"int")==0)	
+			{
+				table[ret]->i_val=i_val;
+			}
+		
+		}
+		return;
 
 }
 int lookup_symbol(char *id) {//command=0:declare command=1:取出var
@@ -332,7 +383,15 @@ void dump_symbol() {
 	
 	for(i=0;i<TableSize;i++){
 		if(table[i]->vaild==1){
-		printf("%d\t%s\t%s\n",i+1,table[i]->id,table[i]->type);
+		printf("%d\t%s\t%s",i+1,table[i]->id,table[i]->type);
+		if(strcmp(table[i]->type,"float32")==0)
+		{
+		printf("\t%lf\n",table[i]->f_val);
+		}
+		else if(strcmp(table[i]->type,"int")==0)
+		{
+		printf("\t%d\n",table[i]->i_val);
+		}
 		}
 
 

@@ -1136,41 +1136,39 @@ YY_RULE_SETUP
 case 41:
 YY_RULE_SETUP
 #line 159 "compiler_hw2.l"
-{
-	AllocAndCopy(yytext);return ID;
-	}
+{AllocAndCopy(yytext);return ID;}
 	YY_BREAK
 case 42:
 /* rule 42 can match eol */
 YY_RULE_SETUP
-#line 165 "compiler_hw2.l"
+#line 163 "compiler_hw2.l"
 {linecount++; varflag = 0;nowid=NULL;doubleComment=0;
 				yylineno++;
 				return NEWLINE;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 168 "compiler_hw2.l"
+#line 166 "compiler_hw2.l"
 {;} /* Ignore */
 	YY_BREAK
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 169 "compiler_hw2.l"
+#line 167 "compiler_hw2.l"
 {;} /* Ignore other charactor sets */
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(STRING_STATE):
-#line 170 "compiler_hw2.l"
+#line 168 "compiler_hw2.l"
 {yyterminate();}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 174 "compiler_hw2.l"
+#line 172 "compiler_hw2.l"
 ECHO;
 	YY_BREAK
-#line 1174 "lex.yy.c"
+#line 1172 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2181,7 +2179,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 174 "compiler_hw2.l"
+#line 172 "compiler_hw2.l"
 
 
 

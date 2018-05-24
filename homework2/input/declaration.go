@@ -1,4 +1,3 @@
-var x int 
+var x int
 var y int = 5
-
-x = 10
+var z float32 = 2.3

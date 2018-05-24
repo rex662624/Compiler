@@ -5,11 +5,11 @@ println("sadasd")
 a=8
 
 var a int
-var asdas int = 5
-var sss float32
-var sadsad float32 = 56.12
-var sds void  
-var a int = 5
+var b int = 5
+var c float32
+var d float32 = 56.12
+var e void  
+var a int = 6
 /*sdasdasd
 asdasdasdas
 sadsadas*/
@@ -29,3 +29,5 @@ sadsadas*/
 9%5
 9.9%5
 9.9%9.9
+
+b+5.5

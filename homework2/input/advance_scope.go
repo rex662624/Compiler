@@ -1,3 +1,7 @@
+/*
+ * We check the value which depends on your symbol table dump function.
+ * Your symbol table needs to record the scope depth.
+ */
 var x int = 10
 
 {

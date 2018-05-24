@@ -156,9 +156,7 @@ double {digit}+"."{digit}+
 		return C_COMMENT;
 		}
 
-{id}	{
-	AllocAndCopy(yytext);return ID;
-	}
+{id}	{AllocAndCopy(yytext);return ID;}
 
 
 
