@@ -91,8 +91,8 @@ double {digit}+"."{digit}+
 
 "("		{ return '('; }
 ")"		{ return ')'; }
-"{"		{ return LB2; }
-"}" { return RB2; }
+"{"		{ return '{'; }
+"}" { return '}'; }
 
 
  /* Print Keywords */	
@@ -115,9 +115,18 @@ double {digit}+"."{digit}+
 
 
 \"[^\n"]+\" {
+			char * temp=malloc(sizeof(yytext)+1);
+			int i;
+			for(i=1;i<strlen(yytext)-1;i++)
+			{
+			temp[i-1]=yytext[i];
+			}
+			
 			//防止memory leak 再重新malloc 並copy
-			AllocAndCopy(yytext);
-			return STRING;}
+			AllocAndCopy(temp);
+			return STRING;
+			free(temp);
+			}
 
 {integer}	{ sscanf(yytext,"%d",&yylval.val.i_val);
 				yylval.val.type=1;
@@ -165,7 +174,7 @@ double {digit}+"."{digit}+
 				return NEWLINE;}
 [ \t]		{;} /* Ignore */
 [^; \t] 	{;} /* Ignore other charactor sets */
-<<EOF>> {yyterminate();}
+<<EOF>> {linecount++;yyterminate();}
 
 
 

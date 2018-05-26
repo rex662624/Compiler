@@ -55,7 +55,7 @@ void yyerror(char *);
 %token IF ELSE FOR
 %token VAR NEWLINE
 %token ADD SUB MUL DIV MOD GT LTGE LE EQ NE
-%token '(' ')' INC DEC LT GE ASSIGN 
+%token '(' ')' '{' '}'INC DEC LT GE ASSIGN 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token AND OR NOT LB2 RB2
 %token C_COMMENT
@@ -96,17 +96,36 @@ program
 
 stat
     : declaration
+	| if_block
     | print_func
 	| NEWLINE
 	| assign_expr
 	| compare_expr
 	| arith {	
-				 if($1.type==1)//int
+/*				 if($1.type==1)//int
 				printf("ans = %d\n", $1.i_val);
 				else
-				printf("ans = %lf\n", $1.f_val);
+				printf("ans = %lf\n", $1.f_val);*/
 			}
 	| C_COMMENT
+;
+if_block
+	: IF '(' compare_expr ')''{'if_stat '}' else_stat 	
+		{
+		//	printf("---a block line %d\n",linecount);
+		}
+	
+;
+if_stat
+	: stat if_stat
+	|	
+;
+
+else_stat
+	: ELSE IF '(' compare_expr ')' '{' if_stat '}' else_stat
+	| ELSE '{' if_stat '}' else_stat
+	| NEWLINE
+	| 	
 ;
 
 arith

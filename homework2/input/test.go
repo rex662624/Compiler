@@ -1,6 +1,8 @@
 
 print ("asdasd")
 println("sadasd")
+println("sASDSALAS\n")
+print("asfsafsafsasafsaasf")
 
 a=8
 
@@ -16,7 +18,7 @@ sadsadas*/
 /*asdasdasd*/
 //asdsadasd
 //sadasd //sadasdasd //asdasd
-/*
+
 1+2+3
 1.1+1.2+1.3
 2.2+2
@@ -29,7 +31,6 @@ sadsadas*/
 9%5
 9.9%5
 9.9%9.9
-*/
 b+5.5
 b/0
 print(b)
@@ -70,4 +71,3 @@ b*=80
 print(b)
 b/= 6
 print(b)
-
