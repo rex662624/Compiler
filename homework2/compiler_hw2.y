@@ -12,7 +12,7 @@ void yyerror(char *);
 //原來的 lex
 	#include <stdio.h>
 	#include <stdlib.h>
-	#define TableSize 50000
+	#define TableSize 500
 	/* Symbol table function */
 	void create_symbol();
 	int insert_symbol(char*,int);
@@ -30,12 +30,15 @@ void yyerror(char *);
  			double f_val;
  	};
 	int vaild;
+
+	int scope_depth;
 	}symboltable;
 	symboltable* table[TableSize];
 	int CreateTableFlag=0;	
 	int CheckUndefined=0;
-
-	// new
+	int NowDepth=0;
+	void ScopeOver();
+	
 %}
 
 /* Using union to define nonterminal and token type */
@@ -95,17 +98,26 @@ program
 ;
 
 stat
-    : declaration
+	: '{' 	{NowDepth++;}
+		program //{printf("Scope %d\n",NowDepth);}
+		'}'	{	
+				
+				// NEW 把目前scope的vaild設為2表示dead不能用
+				ScopeOver();
+				NowDepth--; 
+				//printf("Scope %d\n",NowDepth);
+			}
+    | declaration
 	| if_block
     | print_func
 	| NEWLINE
 	| assign_expr
 	| compare_expr
 	| arith {	
-/*				 if($1.type==1)//int
+				 if($1.type==1)//int
 				printf("ans = %d\n", $1.i_val);
 				else
-				printf("ans = %lf\n", $1.f_val);*/
+				printf("ans = %lf\n", $1.f_val);
 			}
 	| C_COMMENT
 ;
@@ -408,6 +420,7 @@ compare_expr
 
 assign_expr
 	:	ID ASSIGN arith      {
+							printf("ASSIGN\n");
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
@@ -425,6 +438,7 @@ assign_expr
 
 							}
 	|	ID ADD_ASSIGN arith      {
+							printf("ADD_ASSIGN\n");
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
@@ -449,6 +463,7 @@ assign_expr
 							}
 							}
 	|	ID SUB_ASSIGN arith       {
+							printf("SUB_ASSIGN\n");
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
@@ -474,6 +489,7 @@ assign_expr
 							}
 							}
 	|	ID MUL_ASSIGN arith      {
+							printf("MUL_ASSIGN\n");
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
@@ -498,6 +514,7 @@ assign_expr
 							}
 							}
 	|	ID DIV_ASSIGN arith      {
+							printf("DIV_ASSIGN\n");
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
@@ -522,6 +539,7 @@ assign_expr
 							}
 							}
 	|	ID MOD_ASSIGN arith      {
+							printf("MOD_ASSIGN\n");
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
@@ -542,11 +560,11 @@ assign_expr
 
 
 declaration
-	: VAR ID type NEWLINE {
+	: VAR ID type  {
 //							printf("declare : %s %s\n",$2,$3) ;
 							strcmp($3,"int")==0?insert_symbol($2,1):insert_symbol($2,0);
 						}
-	| VAR ID type ASSIGN initializer NEWLINE {
+	| VAR ID type ASSIGN initializer {
 				if(strcmp($3,"float32")==0){//float
 					int ret;
 //					printf("declare : %s %s %lf\n",$2,$3,$5.f_val) ;
@@ -582,21 +600,21 @@ initializer
 
 
 print_func 
-	: PRINT '(' STRING ')' NEWLINE {printf("PRINT : %s\n",$3) ;}
-	| PRINTLN '(' STRING ')' NEWLINE {printf("PRINTLN : %s\n",$3) ;}
-	| PRINT '(' arith ')' NEWLINE 
+	: PRINT '(' STRING ')' {printf("PRINT : %s\n",$3) ;}
+	| PRINTLN '(' STRING ')' {printf("PRINTLN : %s\n",$3) ;}
+	| PRINT '(' arith ')' 
 						{		                  
 							if($3.type==1)//int
                  				printf("PRINT : %d\n", $3.i_val);
                  			else
 								printf("PRINT : %lf\n", $3.f_val);
 						}	
-	| PRINTLN '(' arith ')' NEWLINE 
+	| PRINTLN '(' arith ')' 
 						{							
                              if($3.type==1)//int                           
-                                 printf("PRINT : %d\n", $3.i_val);
+                                 printf("PRINTLN : %d\n", $3.i_val);
                              else
-                                 printf("PRINT : %lf\n", $3.f_val);
+                                 printf("PRINTLN : %lf\n", $3.f_val);
 			
 						}
 ;
@@ -633,6 +651,7 @@ void create_symbol()
 	table[i]->type=NULL;
 	table[i]->id=NULL;
 	table[i]->vaild=0;
+	table[i]->scope_depth=-1;
 	}	
 
 }
@@ -644,11 +663,12 @@ int insert_symbol(char* id , int type) {
 		strcpy(table[0]->id,id);
 		table[0]->vaild = 1 ;//vaild表示有symbol在表中
 		printf("Insert a symbol: %s\n",id);
-
 		if(type==1)//int
 			table[0]->type="int";
 		else if(type==0)//float
 			table[0]->type="float32";
+		//New
+		table[0]->scope_depth=NowDepth;
 
 		return 0;
 	}
@@ -666,7 +686,10 @@ int insert_symbol(char* id , int type) {
 	                	        table[i]->type="int";
         		        else if(type==0)//float
                         		table[i]->type="float32";
-			
+				
+				//New
+				table[i]->scope_depth=NowDepth;
+				
 				return i;
 			}
 		}
@@ -694,21 +717,26 @@ void insert_value(int ret , double f_val, int i_val){
 
 }
 int lookup_symbol(char *id) {//command=0:declare command=1:取出var
+	int smallest=-1;//NEW先設定最小scope=-1(沒有defined)
 	int i;
 	//查看是否undefined
 	if(CreateTableFlag==0)return -1;
 	if(CheckUndefined==1){//表示是要取出id,是非宣告狀態（宣告狀態是要去看下面的redefined）
 		for(i=0;i<TableSize;i++)
-                        if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0)
-                        	return i;//表示有defined
+			//NEW  只能取 <= 目前 scope的人 但是要看最小的，所以for要走完
+                        if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0&&table[i]->scope_depth<=NowDepth)
+                        	{
+					if(smallest<=i)smallest=i;
+				}//會進來表示有defined
 	
 //        	printf("<ERROR>:Undefined variable %s (line %d)\n",id,linecount);
-		return -1;//沒有defined
+		return smallest;//沒有defined
 	}
 	
 	//查看是否redefined
 	for(i=0;i<TableSize;i++){
-			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0){
+			//NEW 會進到這裡表示是宣告
+			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0&&table[i]->scope_depth==NowDepth){
 			
 			printf("<ERROR>:Redefined variable %s,table index:%d (line %d)\n",id,i+1,linecount);
 			return i;
@@ -721,18 +749,20 @@ void dump_symbol() {
 
 	printf("\nThe symbol table dump:\n");
 	int i ;
-	
+	printf("%3s\t%6s\t%8s\t%10s\t%5s\n","index","ID","type","value","Scope");
 	for(i=0;i<TableSize;i++){
-		if(table[i]->vaild==1){
-		printf("%d\t%s\t%s",i+1,table[i]->id,table[i]->type);
+		if(table[i]->vaild!=0){
+		printf("%3d\t%6s\t%8s",i+1,table[i]->id,table[i]->type);
 		if(strcmp(table[i]->type,"float32")==0)
 		{
-		printf("\t%lf\n",table[i]->f_val);
+		printf("\t%10lf",table[i]->f_val);
 		}
 		else if(strcmp(table[i]->type,"int")==0)
 		{
-		printf("\t%d\n",table[i]->i_val);
+		printf("\t%10d",table[i]->i_val);
 		}
+		//NEW
+		printf("\t%5d\n",table[i]->scope_depth);
 		}
 
 
@@ -742,5 +772,16 @@ void dump_symbol() {
 
 void yyerror(char *s) {
     printf("%s on %d line \n", s , linecount);
+}
+
+//NEW
+void ScopeOver()
+{
+	int i ;
+	for(i=0;i<TableSize;i++){
+		if(table[i]->vaild!=0&&NowDepth==table[i]->scope_depth){
+			table[i]->vaild=2;
+		}
+	}
 }
 
