@@ -18,7 +18,7 @@ void yyerror(char *);
 	int insert_symbol(char*,int);
 	int lookup_symbol(char*);
 	void dump_symbol();
-	void insert_value(int ret , int i_val ,double f_val);
+	void insert_value(int ret , double f_val, int i_val);
 	int linecount=0;	
 	int commentline=0;
 
@@ -98,9 +98,11 @@ stat
     : declaration
     | print_func
 	| NEWLINE
-	| arith { if($1.type==1)//int
+	| COMPARE
+	| arith {	
+				 if($1.type==1)//int
 				printf("ans = %d\n", $1.i_val);
-			else
+				else
 				printf("ans = %lf\n", $1.f_val);
 			}
 	| C_COMMENT
@@ -151,14 +153,20 @@ arith
 
 					if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
-                        $$.i_val = $1.i_val / $3.i_val;
+						if($3.i_val==0)
+							printf("<ERROR> The divisor can’t be 0\n");
+						else
+                        	$$.i_val = $1.i_val / $3.i_val;
                       } else {//double
                         double v1 = $1.type == 1 ? (double)$1.i_val
                                                    : $1.f_val;
                         double v2 = $3.type == 1 ? (double)$3.i_val
                                                    : $3.f_val;
                         $$.type = 0;
-                        $$.f_val = v1 / v2;
+						if(v2==0)
+							printf("<ERROR> The divisor can’t be 0\n");
+						else
+                        	$$.f_val = v1 / v2;
                       }
 							printf("%s\n","DIV");}
 	| arith MOD arith   { 
@@ -171,6 +179,36 @@ arith
                       $$.i_val=0;$$.type = 1;
 						}
 
+						}
+	|ID INC 			{
+						int ret=-1;
+						CheckUndefined = 1;
+						ret=lookup_symbol($1);
+						if(ret==-1)
+							printf("Error:Undefined variable %s\n",$1);
+						else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								insert_value(ret,(table[ret]->f_val)+1,0);
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								insert_value(ret,0.0,(table[ret]->i_val)+1);
+								}
+							}
+						}
+	|ID DEC			{
+						int ret=-1;
+						CheckUndefined = 1;
+						ret=lookup_symbol($1);
+						if(ret==-1)
+							printf("Error:Undefined variable %s\n",$1);
+						else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								insert_value(ret,(table[ret]->f_val)-1,0);
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								insert_value(ret,0.0,(table[ret]->i_val)-1);
+								}
+							}
 						}
 	| SUB arith %prec UMINUS	{$$.i_val = $2.i_val*(-1); }//優先處理因為代表負數
 	| ID ASSIGN arith      {
@@ -215,6 +253,149 @@ arith
 	| F_CONST			{$$.f_val = $1.f_val; $$.type=0;}
 ;
 
+COMPARE 
+		:arith GT arith	{
+							int ret;
+							if($1.type==1&&$3.type==1)
+							{
+								ret=($1.i_val>$3.i_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+							else if($1.type==0&&$3.type==0)
+							{
+								ret=($1.f_val>$3.f_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+								
+							else
+								printf("Error:compare between different type\n");						
+
+						}
+		|arith LT arith {
+							int ret;
+							if($1.type==1&&$3.type==1)
+							{
+								ret=($1.i_val<$3.i_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+							else if($1.type==0&&$3.type==0)
+							{
+								ret=($1.f_val<$3.f_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+								
+							else
+								printf("Error:compare between different type\n");						
+
+						}
+		|arith GE arith	{
+							int ret;
+							if($1.type==1&&$3.type==1)
+							{
+								ret=($1.i_val>=$3.i_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+							else if($1.type==0&&$3.type==0)
+							{
+								ret=($1.f_val>=$3.f_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+								
+							else
+								printf("Error:compare between different type\n");						
+
+						}
+		|arith LE arith {
+							int ret;
+							if($1.type==1&&$3.type==1)
+							{
+								ret=($1.i_val<=$3.i_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+							else if($1.type==0&&$3.type==0)
+							{
+								ret=($1.f_val<=$3.f_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+								
+							else
+								printf("Error:compare between different type\n");						
+
+						}
+		|arith EQ arith {
+							int ret;
+							if($1.type==1&&$3.type==1)
+							{
+								ret=($1.i_val==$3.i_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+							else if($1.type==0&&$3.type==0)
+							{
+								ret=($1.f_val==$3.f_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+								
+							else
+								printf("Error:compare between different type\n");						
+
+						}
+		|arith NE arith {
+							int ret;
+							if($1.type==1&&$3.type==1)
+							{
+								ret=($1.i_val!=$3.i_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+							else if($1.type==0&&$3.type==0)
+							{
+								ret=($1.f_val!=$3.f_val);
+								if(ret)
+									printf("True\n");
+								else
+									printf("False\n");	
+							}
+								
+							else
+								printf("Error:compare between different type\n");						
+
+						}
+
+;
+
+
 declaration
 	: VAR ID type NEWLINE {
 							printf("declare : %s %s\n",$2,$3) ;
@@ -225,12 +406,12 @@ declaration
 					int ret;
 					printf("declare : %s %s %lf\n",$2,$3,$5.f_val) ;
 					ret = insert_symbol($2,0);
-					insert_value(ret,0,$5.f_val);
+					insert_value(ret,$5.f_val,0);
 				}else if(strcmp($3,"int")==0){//int
 					int ret;
 					printf("declare : %s %s %d\n",$2,$3,$5.i_val) ;
 					ret = insert_symbol($2,1);
-					insert_value(ret,$5.i_val,0.0);
+					insert_value(ret,0.0,$5.i_val);
 					}
 			}//這裡要做type chexk
 ;
@@ -258,6 +439,21 @@ initializer
 print_func 
 	: PRINT '(' STRING ')' NEWLINE {printf("PRINT : %s\n",$3) ;}
 	| PRINTLN '(' STRING ')' NEWLINE {printf("PRINTLN : %s\n",$3) ;}
+	| PRINT '(' arith ')' NEWLINE 
+						{		                  
+							if($3.type==1)//int
+                 				printf("PRINT : %d\n", $3.i_val);
+                 			else
+								printf("PRINT : %lf\n", $3.f_val);
+						}	
+	| PRINTLN '(' arith ')' NEWLINE 
+						{							
+                             if($3.type==1)//int                           
+                                 printf("PRINT : %d\n", $3.i_val);
+                             else
+                                 printf("PRINT : %lf\n", $3.f_val);
+			
+						}
 ;
 
 
@@ -334,7 +530,7 @@ int insert_symbol(char* id , int type) {
 
 }
 
-void insert_value(int ret , int i_val ,double f_val){
+void insert_value(int ret , double f_val, int i_val){
 		if(CreateTableFlag==0)return ;
 		if(ret==-1)
 			return;

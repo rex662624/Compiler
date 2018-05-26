@@ -31,3 +31,28 @@ sadsadas*/
 9.9%9.9
 
 b+5.5
+b/0
+print(b)
+println("5.5")
+print(d)
+println(5+8+5.6)
+
+var x int = 1
+
+x > 1
+x >= 1
+x < 1
+x <= 1
+x == 1
+x != 1
+
+b=b+b
+print(b)
+print(x)
+x++
+x++
+print(x)
+x--
+print(x)
+b++
+print(b)
