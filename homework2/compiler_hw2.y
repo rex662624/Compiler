@@ -38,6 +38,9 @@ void yyerror(char *);
 	int CheckUndefined=0;
 	int NowDepth=0;
 	void ScopeOver();
+	//NEW
+	int printidscope=0;//表示目前是不是id 
+	int out=0;//要輸出的值
 	
 %}
 
@@ -114,10 +117,10 @@ stat
 	| assign_expr
 	| compare_expr
 	| arith {	
-				 if($1.type==1)//int
+/*				 if($1.type==1)//int
 				printf("ans = %d\n", $1.i_val);
 				else
-				printf("ans = %lf\n", $1.f_val);
+				printf("ans = %lf\n", $1.f_val);*/
 			}
 	| C_COMMENT
 ;
@@ -270,6 +273,9 @@ arith
 									$$.i_val=table[ret]->i_val;
 									$$.type=1;
 								}
+							//NEW
+							printidscope=1;
+							out=table[ret]->scope_depth;
 							}
 						}
 	| I_CONST			{$$.i_val = $1.i_val; $$.type=1;}
@@ -605,18 +611,39 @@ print_func
 	| PRINT '(' arith ')' 
 						{		                  
 							if($3.type==1)//int
-                 				printf("PRINT : %d\n", $3.i_val);
-                 			else
-								printf("PRINT : %lf\n", $3.f_val);
+								{	
+									if(printidscope==0)
+                 								printf("PRINT : %d\n", $3.i_val);
+									else
+										printf("PRINT : %d (Block:%d)\n", $3.i_val,out);
+								}
+                 					else
+								{	
+									if(printidscope==0)
+                 								printf("PRINT : %lf\n", $3.f_val);
+									else
+										printf("PRINT : %lf (Block:%d)\n", $3.f_val,out);
+								}
+						printidscope=0;
 						}	
 	| PRINTLN '(' arith ')' 
-						{							
-                             if($3.type==1)//int                           
-                                 printf("PRINTLN : %d\n", $3.i_val);
-                             else
-                                 printf("PRINTLN : %lf\n", $3.f_val);
-			
-						}
+						{		                  
+							if($3.type==1)//int
+								{	
+									if(printidscope==0)
+                 								printf("PRINTLN : %d\n", $3.i_val);
+									else
+										printf("PRINTLN : %d (Block:%d)\n", $3.i_val,out);
+								}
+                 					else
+								{	
+									if(printidscope==0)
+                 								printf("PRINTLN : %lf\n", $3.f_val);
+									else
+										printf("PRINTLN : %lf (Block:%d)\n", $3.f_val,out);
+								}
+						printidscope=0;
+						}	
 ;
 
 
