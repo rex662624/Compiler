@@ -98,7 +98,8 @@ stat
     : declaration
     | print_func
 	| NEWLINE
-	| COMPARE
+	| assign_expr
+	| compare_expr
 	| arith {	
 				 if($1.type==1)//int
 				printf("ans = %d\n", $1.i_val);
@@ -211,23 +212,6 @@ arith
 							}
 						}
 	| SUB arith %prec UMINUS	{$$.i_val = $2.i_val*(-1); }//優先處理因為代表負數
-	| ID ASSIGN arith      {
-							int ret=-1;
-							CheckUndefined = 1;
-							ret=lookup_symbol($1);
-							CheckUndefined = 0;
-							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1);
-							else{
-								if(strcmp(table[ret]->type,"float32")==0){
-								insert_value(ret,$3.f_val,0);
-								}
-								else if(strcmp(table[ret]->type,"int")==0){
-								insert_value(ret,0.0,$3.i_val);
-								}
-							}
-
-							}
 	| '(' arith ')'     { $$.i_val = $2.i_val; }
 	| ID                {							
 							int ret=-1;
@@ -253,7 +237,7 @@ arith
 	| F_CONST			{$$.f_val = $1.f_val; $$.type=0;}
 ;
 
-COMPARE 
+compare_expr 
 		:arith GT arith	{
 							int ret;
 							if($1.type==1&&$3.type==1)
@@ -392,6 +376,140 @@ COMPARE
 								printf("Error:compare between different type\n");						
 
 						}
+
+;
+
+assign_expr
+	:	ID ASSIGN arith      {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1);
+							else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								insert_value(ret,$3.f_val,0);
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								insert_value(ret,0.0,$3.i_val);
+								}
+							}
+
+							}
+	|	ID ADD_ASSIGN arith      {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1);
+							else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								if($3.type==0)
+									table[ret]->f_val +=$3.f_val;
+								else
+									table[ret]->f_val +=(double)$3.i_val;
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								if($3.type==1)
+									table[ret]->i_val +=$3.i_val;
+								else
+									printf("Error:assign float to int variable\n");
+								
+								}
+
+							}
+							}
+	|	ID SUB_ASSIGN arith       {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1);
+							else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								if($3.type==0)
+									table[ret]->f_val -=$3.f_val;
+								else
+									table[ret]->f_val -=(double)$3.i_val;
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								if($3.type==1)
+									table[ret]->i_val -=$3.i_val;
+								else
+									printf("Error:assign float to int variable\n");
+								
+								}
+								
+
+							}
+							}
+	|	ID MUL_ASSIGN arith      {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1);
+							else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								if($3.type==0)
+									table[ret]->f_val *=$3.f_val;
+								else
+									table[ret]->f_val *=(double)$3.i_val;
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								if($3.type==1)
+									table[ret]->i_val *=$3.i_val;
+								else
+									printf("Error:assign float to int variable\n");
+								
+								}
+
+							}
+							}
+	|	ID DIV_ASSIGN arith      {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1);
+							else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								if($3.type==0)
+									table[ret]->f_val /=$3.f_val;
+								else
+									table[ret]->f_val /=(double)$3.i_val;
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								if($3.type==1)
+									table[ret]->i_val /=$3.i_val;
+								else
+									printf("Error:assign float to int variable\n");
+								
+								}
+
+							}
+							}
+	|	ID MOD_ASSIGN arith      {
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								printf("Error:Undefined variable %s\n",$1);
+							else{
+								if(strcmp(table[ret]->type,"int")==0&&$3.type==1){
+								table[ret]->i_val %=$3.i_val;
+								}
+								else{
+								printf("Error: modulo float number");
+								} 
+							}
+							}
 
 ;
 

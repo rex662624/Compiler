@@ -16,7 +16,7 @@ sadsadas*/
 /*asdasdasd*/
 //asdsadasd
 //sadasd //sadasdasd //asdasd
-
+/*
 1+2+3
 1.1+1.2+1.3
 2.2+2
@@ -29,7 +29,7 @@ sadsadas*/
 9%5
 9.9%5
 9.9%9.9
-
+*/
 b+5.5
 b/0
 print(b)
@@ -56,3 +56,18 @@ x--
 print(x)
 b++
 print(b)
+b+=b
+print(b)
+b-=4
+print(b)
+b%=8
+print(b)
+b*=15.8
+print(b)
+b/= 6.5
+print(b)
+b*=80
+print(b)
+b/= 6
+print(b)
+
