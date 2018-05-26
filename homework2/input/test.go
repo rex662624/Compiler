@@ -9,7 +9,7 @@ var b int = 5
 var c float32
 var d float32 = 56.12
 var e void  
-var a int = 6
+var a int = 6 + b
 /*sdasdasd
 asdasdasdas
 sadsadas*/

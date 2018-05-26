@@ -122,8 +122,9 @@ arith
                         $$.type = 0;
                         $$.f_val = v1 + v2;
                       }
-						printf("%s\n","ADD");}
-	| arith SUB arith   { 
+						printf("%s\n","ADD");
+						}
+	| arith SUB arith   {
 						if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
                         $$.i_val = $1.i_val - $3.i_val;
@@ -135,7 +136,8 @@ arith
                         $$.type = 0;
                         $$.f_val = v1 - v2;
                       }
-						printf("%s\n","SUB");}
+						printf("%s\n","SUB");
+						}
 	| arith MUL arith   { 
 						if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
@@ -149,13 +151,14 @@ arith
                         $$.f_val = v1 * v2;
                       }
 		
-							printf("%s\n","MUL");}
+							printf("%s\n","MUL");
+						}
 	| arith DIV arith   { 
 
 					if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
 						if($3.i_val==0)
-							printf("<ERROR> The divisor can’t be 0\n");
+							printf("<ERROR> The divisor can’t be 0 (line %d)\n",linecount);
 						else
                         	$$.i_val = $1.i_val / $3.i_val;
                       } else {//double
@@ -165,7 +168,7 @@ arith
                                                    : $3.f_val;
                         $$.type = 0;
 						if(v2==0)
-							printf("<ERROR> The divisor can’t be 0\n");
+							printf("<ERROR> The divisor can’t be 0 (line %d)\n",linecount);
 						else
                         	$$.f_val = v1 / v2;
                       }
@@ -176,7 +179,7 @@ arith
                         $$.i_val = $1.i_val % $3.i_val;
 						printf("%s\n","MOD");
                       } else {//double
-						printf("ERROR:The modulo does not involve any floating-points\n");
+						printf("ERROR:The modulo does not involve any floating-points (line %d)\n",linecount);
                       $$.i_val=0;$$.type = 1;
 						}
 
@@ -186,7 +189,7 @@ arith
 						CheckUndefined = 1;
 						ret=lookup_symbol($1);
 						if(ret==-1)
-							printf("Error:Undefined variable %s\n",$1);
+							printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 						else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								insert_value(ret,(table[ret]->f_val)+1,0);
@@ -201,7 +204,7 @@ arith
 						CheckUndefined = 1;
 						ret=lookup_symbol($1);
 						if(ret==-1)
-							printf("Error:Undefined variable %s\n",$1);
+							printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 						else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								insert_value(ret,(table[ret]->f_val)-1,0);
@@ -212,14 +215,19 @@ arith
 							}
 						}
 	| SUB arith %prec UMINUS	{$$.i_val = $2.i_val*(-1); }//優先處理因為代表負數
-	| '(' arith ')'     { $$.i_val = $2.i_val; }
+	| '(' arith ')'     { 
+							if($2.type==1)
+								{$$.i_val = $2.i_val;$$.type=1;}
+							else
+								{$$.f_val = $2.f_val;$$.type=0;} 
+						}
 	| ID                {							
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
 							CheckUndefined = 0;
 							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1) ;
+								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"float32")==0)
 								{
@@ -258,7 +266,7 @@ compare_expr
 							}
 								
 							else
-								printf("Error:compare between different type\n");						
+								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
 		|arith LT arith {
@@ -281,7 +289,7 @@ compare_expr
 							}
 								
 							else
-								printf("Error:compare between different type\n");						
+								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
 		|arith GE arith	{
@@ -304,7 +312,7 @@ compare_expr
 							}
 								
 							else
-								printf("Error:compare between different type\n");						
+								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
 		|arith LE arith {
@@ -327,7 +335,7 @@ compare_expr
 							}
 								
 							else
-								printf("Error:compare between different type\n");						
+								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
 		|arith EQ arith {
@@ -350,7 +358,7 @@ compare_expr
 							}
 								
 							else
-								printf("Error:compare between different type\n");						
+								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
 		|arith NE arith {
@@ -373,7 +381,7 @@ compare_expr
 							}
 								
 							else
-								printf("Error:compare between different type\n");						
+								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
 
@@ -386,7 +394,7 @@ assign_expr
 							ret=lookup_symbol($1);
 							CheckUndefined = 0;
 							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1);
+								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								insert_value(ret,$3.f_val,0);
@@ -403,7 +411,7 @@ assign_expr
 							ret=lookup_symbol($1);
 							CheckUndefined = 0;
 							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1);
+								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								if($3.type==0)
@@ -415,7 +423,7 @@ assign_expr
 								if($3.type==1)
 									table[ret]->i_val +=$3.i_val;
 								else
-									printf("Error:assign float to int variable\n");
+									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
 								
 								}
 
@@ -427,7 +435,7 @@ assign_expr
 							ret=lookup_symbol($1);
 							CheckUndefined = 0;
 							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1);
+								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								if($3.type==0)
@@ -439,7 +447,7 @@ assign_expr
 								if($3.type==1)
 									table[ret]->i_val -=$3.i_val;
 								else
-									printf("Error:assign float to int variable\n");
+									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
 								
 								}
 								
@@ -452,7 +460,7 @@ assign_expr
 							ret=lookup_symbol($1);
 							CheckUndefined = 0;
 							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1);
+								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								if($3.type==0)
@@ -464,7 +472,7 @@ assign_expr
 								if($3.type==1)
 									table[ret]->i_val *=$3.i_val;
 								else
-									printf("Error:assign float to int variable\n");
+									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
 								
 								}
 
@@ -476,7 +484,7 @@ assign_expr
 							ret=lookup_symbol($1);
 							CheckUndefined = 0;
 							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1);
+								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								if($3.type==0)
@@ -488,7 +496,7 @@ assign_expr
 								if($3.type==1)
 									table[ret]->i_val /=$3.i_val;
 								else
-									printf("Error:assign float to int variable\n");
+									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
 								
 								}
 
@@ -500,13 +508,13 @@ assign_expr
 							ret=lookup_symbol($1);
 							CheckUndefined = 0;
 							if(ret==-1)
-								printf("Error:Undefined variable %s\n",$1);
+								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"int")==0&&$3.type==1){
 								table[ret]->i_val %=$3.i_val;
 								}
 								else{
-								printf("Error: modulo float number");
+								printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
 								} 
 							}
 							}
@@ -516,18 +524,18 @@ assign_expr
 
 declaration
 	: VAR ID type NEWLINE {
-							printf("declare : %s %s\n",$2,$3) ;
+//							printf("declare : %s %s\n",$2,$3) ;
 							strcmp($3,"int")==0?insert_symbol($2,1):insert_symbol($2,0);
 						}
 	| VAR ID type ASSIGN initializer NEWLINE {
 				if(strcmp($3,"float32")==0){//float
 					int ret;
-					printf("declare : %s %s %lf\n",$2,$3,$5.f_val) ;
+//					printf("declare : %s %s %lf\n",$2,$3,$5.f_val) ;
 					ret = insert_symbol($2,0);
 					insert_value(ret,$5.f_val,0);
 				}else if(strcmp($3,"int")==0){//int
 					int ret;
-					printf("declare : %s %s %d\n",$2,$3,$5.i_val) ;
+//					printf("declare : %s %s %d\n",$2,$3,$5.i_val) ;
 					ret = insert_symbol($2,1);
 					insert_value(ret,0.0,$5.i_val);
 					}
@@ -675,7 +683,7 @@ int lookup_symbol(char *id) {//command=0:declare command=1:取出var
                         if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0)
                         	return i;//表示有defined
 	
-//        	printf("Error:Undefined variable %s\n",id);
+//        	printf("<ERROR>:Undefined variable %s (line %d)\n",id,linecount);
 		return -1;//沒有defined
 	}
 	
@@ -683,7 +691,7 @@ int lookup_symbol(char *id) {//command=0:declare command=1:取出var
 	for(i=0;i<TableSize;i++){
 			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0){
 			
-			printf("Error:Redefined variable %s,table index:%d\n",id,i+1);
+			printf("<ERROR>:Redefined variable %s,table index:%d (line %d)\n",id,i+1,linecount);
 			return i;
 			}
 	}
@@ -714,6 +722,6 @@ void dump_symbol() {
 }
 
 void yyerror(char *s) {
-    printf("%s on %d line \n", s , yylineno);
+    printf("%s on %d line \n", s , linecount);
 }
 
