@@ -28,3 +28,25 @@ println(x)
 }
 
 println(x)
+
+var y int = 10 
+{
+	var y int = 5
+	y++
+	println(y)
+
+}
+println(y)
+{
+	y++
+	println(y)
+	{
+	y++
+	println(y)
+	var y int = 20
+	y++
+	println(y)
+
+	}
+}
+println(y)

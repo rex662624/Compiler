@@ -169,12 +169,12 @@ double {digit}+"."{digit}+
 
 
 
-[\n]		{linecount++; varflag = 0;nowid=NULL;doubleComment=0;
+[\n]		{/*linecount++;*/ varflag = 0;nowid=NULL;doubleComment=0;
 				yylineno++;
 				return NEWLINE;}
 [ \t]		{;} /* Ignore */
 [^; \t] 	{;} /* Ignore other charactor sets */
-<<EOF>> {linecount++;yyterminate();}
+<<EOF>> {yyterminate();}
 
 
 

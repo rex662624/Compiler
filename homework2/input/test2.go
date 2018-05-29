@@ -31,4 +31,36 @@ if(x==5){
 	
 }
 
+if(x==0){
+
+}else{
+
+}
+
+if(x==0){
+
+}
+
+if(x==0){
+
+}else if(x==0){
+
+}else if(x==0){
+
+}else if(x==0){
+
+}else{
+
+}
+
+if(x==0){
+
+}else if(x==0){
+
+}else if(x==0){
+
+}
+
+
+
 //沒有處理if(xxx)沒有{}的狀況

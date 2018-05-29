@@ -19,7 +19,7 @@ void yyerror(char *);
 	int lookup_symbol(char*);
 	void dump_symbol();
 	void insert_value(int ret , double f_val, int i_val);
-	int linecount=0;	
+	int linecount=1;	
 	int commentline=0;
 
 	typedef struct symbol_table{
@@ -113,7 +113,7 @@ stat
     | declaration
 	| if_block
     | print_func
-	| NEWLINE
+	| NEWLINE {linecount++;}
 	| assign_expr
 	| compare_expr
 	| arith {	
@@ -139,7 +139,7 @@ if_stat
 else_stat
 	: ELSE IF '(' compare_expr ')' '{' if_stat '}' else_stat
 	| ELSE '{' if_stat '}' else_stat
-	| NEWLINE
+	| NEWLINE {linecount++;}
 	| 	
 ;
 
