@@ -84,9 +84,11 @@ void yyerror(char *);
 /*associate*/
 
 
+%left GT LTGE LE EQ NE
 %right ASSIGN
 %left ADD SUB
-%left MUL DIV
+%left MUL DIV MOD
+%left INC DEC
 %left UMINUS
 
 /* Yacc will start at this nonterminal */
