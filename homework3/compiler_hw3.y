@@ -55,7 +55,7 @@ void yyerror(char *);
 		};
 		int type;
 		//NEW
-		char buf[256];//為了插入i2f使用
+		char buf[512];//為了插入i2f使用
 	}val;
     char *string;
 }
@@ -123,10 +123,10 @@ stat
 	| assign_expr
 	| compare_expr
 	| arith {	
-				 if($1.type==1)//int
+/*				 if($1.type==1)//int
 				printf("ans = %d\n", $1.i_val);
 				else
-				printf("ans = %lf\n", $1.f_val);
+				printf("ans = %lf\n", $1.f_val);*/
 			//printf("--------------------------------------------\n%s-----------------------------------------",$1.buf);
 			fprintf(fp,"%s",$1.buf);
 				
@@ -283,6 +283,7 @@ arith
 
 						}
 	|ID INC 			{
+						sprintf($$.buf,"%s","");//先清空
 						int ret=-1;
 						CheckUndefined = 1;
 						ret=lookup_symbol($1);
@@ -291,13 +292,31 @@ arith
 						else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								insert_value(ret,(table[ret]->f_val)+1,0);
+								//id+1;
+								char *tmp=malloc(30);	
+								sprintf(tmp,"\tfload %d\n",ret);
+								strcat( $$.buf,tmp);
+								
+								strcat($$.buf,"\tldc 1.0\n");
+								strcat($$.buf,"\tfadd\n");
+								sprintf(tmp,"\tfstore %d\n",ret);
+								strcat($$.buf,tmp);
 								}
 								else if(strcmp(table[ret]->type,"int")==0){
 								insert_value(ret,0.0,(table[ret]->i_val)+1);
+								char *tmp=malloc(30);	
+								sprintf(tmp,"\tiload %d\n",ret);
+								strcat( $$.buf,tmp);
+								
+								strcat($$.buf,"\tldc 1\n");
+								strcat($$.buf,"\tiadd\n");
+								sprintf(tmp,"\tistore %d\n",ret);
+								strcat($$.buf,tmp);
 								}
 							}
 						}
 	|ID DEC			{
+						sprintf($$.buf,"%s","");//先清空
 						int ret=-1;
 						CheckUndefined = 1;
 						ret=lookup_symbol($1);
@@ -306,9 +325,26 @@ arith
 						else{
 								if(strcmp(table[ret]->type,"float32")==0){
 								insert_value(ret,(table[ret]->f_val)-1,0);
+								//id+1;
+								char *tmp=malloc(30);	
+								sprintf(tmp,"\tfload %d\n",ret);
+								strcat( $$.buf,tmp);
+								
+								strcat($$.buf,"\tldc 1.0\n");
+								strcat($$.buf,"\tfsub\n");
+								sprintf(tmp,"\tfstore %d\n",ret);
+								strcat($$.buf,tmp);
 								}
 								else if(strcmp(table[ret]->type,"int")==0){
 								insert_value(ret,0.0,(table[ret]->i_val)-1);
+								char *tmp=malloc(30);	
+								sprintf(tmp,"\tiload %d\n",ret);
+								strcat( $$.buf,tmp);
+								
+								strcat($$.buf,"\tldc 1\n");
+								strcat($$.buf,"\tisub\n");
+								sprintf(tmp,"\tistore %d\n",ret);
+								strcat($$.buf,tmp);
 								}
 							}
 						}
@@ -318,10 +354,12 @@ arith
 								{$$.i_val = $2.i_val;$$.type=1;}
 							else
 								{$$.f_val = $2.f_val;$$.type=0;}
-						sprintf($$.buf,"%s",$2.buf);
+
+							sprintf($$.buf,"%s",$2.buf);
  
 						}
-	| ID                {							
+	| ID                {				
+							sprintf($$.buf,"%s","");//先清空			
 							int ret=-1;
 							CheckUndefined = 1;
 							ret=lookup_symbol($1);
@@ -333,11 +371,17 @@ arith
 								{
 									$$.f_val=table[ret]->f_val;
 									$$.type=0;
+									char *tmp=malloc(30);
+									sprintf(tmp,"\tfload %d\n",ret);
+									strcat( $$.buf,tmp);
 								}
 								else if(strcmp(table[ret]->type,"int")==0)
 								{
 									$$.i_val=table[ret]->i_val;
 									$$.type=1;
+									char *tmp=malloc(30);
+									sprintf(tmp,"\tiload %d\n",ret);
+									strcat( $$.buf,tmp);
 								}
 							//NEW
 							printidscope=1;
@@ -508,11 +552,39 @@ assign_expr
 							if(ret==-1)
 								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
-								if(strcmp(table[ret]->type,"float32")==0){
-								insert_value(ret,$3.f_val,0);
+								if(strcmp(table[ret]->type,"float32")==0){//如果ID是float
+									if($3.type==0)//如果arith是float
+									{
+										insert_value(ret,$3.f_val,0);
+										fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+										fprintf(fp, "\tfstore %d\n",ret);
+										
+									}
+									else//如果arith是int
+									{
+										insert_value(ret,(float)$3.i_val,0);
+										fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+										fprintf(fp, "\ti2f\n");
+										fprintf(fp, "\tistore %d\n",ret);
+		
+									}
+
 								}
-								else if(strcmp(table[ret]->type,"int")==0){
-								insert_value(ret,0.0,$3.i_val);
+								else if(strcmp(table[ret]->type,"int")==0){//ID是int
+									if($3.type==0)//如果arith是float
+									{
+										insert_value(ret,0.0,(int)$3.f_val);
+										fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+										fprintf(fp, "\tf2i\n");
+										fprintf(fp, "\tistore %d\n",ret);										
+									}
+									else//如果arith是int
+									{
+										insert_value(ret,0.0,$3.i_val);
+										fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+										fprintf(fp, "\tistore %d\n",ret);		
+									}
+								
 								}
 							}
 
@@ -527,17 +599,42 @@ assign_expr
 								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"float32")==0){
-								if($3.type==0)
+								if($3.type==0){//ID是float且arith是float
 									table[ret]->f_val +=$3.f_val;
-								else
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									//x+arith
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"\tfadd\n");
+									fprintf(fp, "\tfstore %d\n",ret);									
+								}
+								else{//ID是float且arith是int
 									table[ret]->f_val +=(double)$3.i_val;
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									//x+arith
+									fprintf(fp,"\ti2f\n");
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"\tfadd\n");
+									fprintf(fp,"\tfstore %d\n",ret);	
+								}
 								}
 								else if(strcmp(table[ret]->type,"int")==0){
-								if($3.type==1)
+								if($3.type==1){//ID是int且arith是int
 									table[ret]->i_val +=$3.i_val;
-								else
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									//x+arith
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"\tiadd\n");
+									fprintf(fp, "\tistore %d\n",ret);		
+								}
+								else{//ID是int且arith是float
 									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
-								
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									//x+arith
+									fprintf(fp,"\tf2i\n");
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"\tiadd\n");
+									fprintf(fp, "\tistore %d\n",ret);	
+								}
 								}
 
 							}
@@ -642,7 +739,16 @@ assign_expr
 declaration
 	: VAR ID type  {
 //							printf("declare : %s %s\n",$2,$3) ;
-							strcmp($3,"int")==0?insert_symbol($2,1):insert_symbol($2,0);
+							int ret;
+							if(strcmp($3,"int")==0){
+								ret=insert_symbol($2,1);
+								fprintf(fp, "\tldc %d\n",0);
+								fprintf(fp, "\tistore %d\n",ret);
+							}else{
+								ret=insert_symbol($2,0);
+								fprintf(fp, "\tldc %f\n",0.0);
+								fprintf(fp, "\tfstore %d\n",ret);
+							}
 						}
 	| VAR ID type ASSIGN initializer {
 				if(strcmp($3,"float32")==0){//float
@@ -650,11 +756,17 @@ declaration
 //					printf("declare : %s %s %lf\n",$2,$3,$5.f_val) ;
 					ret = insert_symbol($2,0);
 					insert_value(ret,$5.f_val,0);
+					
+					fprintf(fp,"%s",$5.buf);//有關arith結束都要寫入
+					fprintf(fp, "\tfstore %d\n",ret);					
 				}else if(strcmp($3,"int")==0){//int
 					int ret;
 //					printf("declare : %s %s %d\n",$2,$3,$5.i_val) ;
 					ret = insert_symbol($2,1);
 					insert_value(ret,0.0,$5.i_val);
+
+					fprintf(fp,"%s",$5.buf);//有關arith結束都要寫入
+					fprintf(fp, "\tistore %d\n",ret);
 					}
 			}//這裡要做type check
 ;
@@ -666,6 +778,7 @@ type
 ;
 initializer
 	: arith   { 
+				sprintf($$.buf,"%s",$1.buf);
 				if($1.type==0)//double
 				{
 					$$.type=0;
@@ -771,12 +884,12 @@ int main(int argc, char** argv)
 	fprintf(fp, ".class public main\n");
 	fprintf(fp, ".super java/lang/Object\n");
 	fprintf(fp, ".method public static main([Ljava/lang/String;)V\n");
-	fprintf(fp, ".limit stack 20\n");
+	fprintf(fp, ".limit stack 100\n");
 	fprintf(fp, ".limit locals 100\n");
 	
     	yyparse();
 
-	fprintf(fp, "\t return\n");
+	fprintf(fp, "\treturn\n");
 	fprintf(fp, ".end method\n");
 	
 	fclose(fp);
