@@ -39,8 +39,10 @@ void yyerror(char *);
 	int NowDepth=0;
 	void ScopeOver();
 	//NEW
-	int printidscope=0;//表示目前是不是id 
+	int printidscope=0;//表示目前是不是要print id 或是數字 
 	int out=0;//要輸出的值
+	//jasmin
+	FILE * fp;
 	
 %}
 
@@ -49,9 +51,11 @@ void yyerror(char *);
 	struct{
 		union{
     		int	i_val;
-			double f_val;
+		double f_val;
 		};
 		int type;
+		//NEW
+		char buf[256];//為了插入i2f使用
 	}val;
     char *string;
 }
@@ -119,10 +123,13 @@ stat
 	| assign_expr
 	| compare_expr
 	| arith {	
-/*				 if($1.type==1)//int
+				 if($1.type==1)//int
 				printf("ans = %d\n", $1.i_val);
 				else
-				printf("ans = %lf\n", $1.f_val);*/
+				printf("ans = %lf\n", $1.f_val);
+			//printf("--------------------------------------------\n%s-----------------------------------------",$1.buf);
+			fprintf(fp,"%s",$1.buf);
+				
 			}
 	| C_COMMENT
 ;
@@ -147,9 +154,16 @@ else_stat
 
 arith
 	: arith ADD arith	{ 
-						if ($1.type == 1 && $3.type == 1) {//integer
+		sprintf($$.buf,"%s","");//先清空	
+	
+		if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
                         $$.i_val = $1.i_val + $3.i_val;
+				
+			strcat($$.buf,$1.buf);
+			strcat($$.buf,$3.buf);
+			strcat($$.buf, "\tiadd\n");
+			
                       } else {//double
                         double v1 = $1.type == 1 ? (double)$1.i_val
                                                    : $1.f_val;
@@ -157,13 +171,26 @@ arith
                                                    : $3.f_val;
                         $$.type = 0;
                         $$.f_val = v1 + v2;
+
+
+			strcat($$.buf,$1.buf);
+			if($1.type == 1){strcat($$.buf,"\ti2f\n");}//如果是int要轉成float
+			strcat($$.buf,$3.buf);
+			if($3.type == 1)strcat($$.buf,"\ti2f\n");
+			strcat($$.buf, "\tfadd\n");
                       }
 						printf("%s\n","ADD");
 						}
 	| arith SUB arith   {
-						if ($1.type == 1 && $3.type == 1) {//integer
+			sprintf($$.buf,"%s","");//先清空	
+			
+			if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
                         $$.i_val = $1.i_val - $3.i_val;
+
+			strcat($$.buf,$1.buf);
+			strcat($$.buf,$3.buf);
+			strcat($$.buf, "\tisub\n");
                       } else {//double
                         double v1 = $1.type == 1 ? (double)$1.i_val
                                                    : $1.f_val;
@@ -171,13 +198,25 @@ arith
                                                    : $3.f_val;
                         $$.type = 0;
                         $$.f_val = v1 - v2;
+
+			strcat($$.buf,$1.buf);
+			if($1.type == 1){strcat($$.buf,"\ti2f\n");}//如果是int要轉成float
+			strcat($$.buf,$3.buf);
+			if($3.type == 1)strcat($$.buf,"\ti2f\n");
+			strcat($$.buf, "\tfsub\n");
                       }
 						printf("%s\n","SUB");
 						}
 	| arith MUL arith   { 
-						if ($1.type == 1 && $3.type == 1) {//integer
+			sprintf($$.buf,"%s","");//先清空	
+			
+			if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
                         $$.i_val = $1.i_val * $3.i_val;
+
+			strcat($$.buf,$1.buf);
+			strcat($$.buf,$3.buf);
+			strcat($$.buf, "\timul\n");
                       } else {//double
                         double v1 = $1.type == 1 ? (double)$1.i_val
                                                    : $1.f_val;
@@ -185,18 +224,29 @@ arith
                                                    : $3.f_val;
                         $$.type = 0;
                         $$.f_val = v1 * v2;
+
+			strcat($$.buf,$1.buf);
+			if($1.type == 1){strcat($$.buf,"\ti2f\n");}//如果是int要轉成float
+			strcat($$.buf,$3.buf);
+			if($3.type == 1)strcat($$.buf,"\ti2f\n");
+			strcat($$.buf, "\tfmul\n");
                       }
 		
 							printf("%s\n","MUL");
 						}
 	| arith DIV arith   { 
+			sprintf($$.buf,"%s","");//先清空	
 
-					if ($1.type == 1 && $3.type == 1) {//integer
+			if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
 						if($3.i_val==0)
 							printf("<ERROR> The divisor can’t be 0 (line %d)\n",linecount);
 						else
-                        	$$.i_val = $1.i_val / $3.i_val;
+                        				$$.i_val = $1.i_val / $3.i_val;
+
+			strcat($$.buf,$1.buf);
+			strcat($$.buf,$3.buf);
+			strcat($$.buf, "\tidiv\n");
                       } else {//double
                         double v1 = $1.type == 1 ? (double)$1.i_val
                                                    : $1.f_val;
@@ -206,18 +256,30 @@ arith
 						if(v2==0)
 							printf("<ERROR> The divisor can’t be 0 (line %d)\n",linecount);
 						else
-                        	$$.f_val = v1 / v2;
+                        				$$.f_val = v1 / v2;
+
+			strcat($$.buf,$1.buf);
+			if($1.type == 1){strcat($$.buf,"\ti2f\n");}//如果是int要轉成float
+			strcat($$.buf,$3.buf);
+			if($3.type == 1)strcat($$.buf,"\ti2f\n");
+			strcat($$.buf, "\tfdiv\n");
                       }
 							printf("%s\n","DIV");}
 	| arith MOD arith   { 
-					  if ($1.type == 1 && $3.type == 1) {//integer
+			sprintf($$.buf,"%s","");//先清空
+			
+			if ($1.type == 1 && $3.type == 1) {//integer
                         $$.type = 1;
                         $$.i_val = $1.i_val % $3.i_val;
 						printf("%s\n","MOD");
+			
+			strcat($$.buf,$1.buf);
+			strcat($$.buf,$3.buf);
+			strcat($$.buf, "\tirem\n");
                       } else {//double
 						printf("ERROR:The modulo does not involve any floating-points (line %d)\n",linecount);
-                      $$.i_val=0;$$.type = 1;
-						}
+                     				 $$.i_val=0;$$.type = 1;
+				}
 
 						}
 	|ID INC 			{
@@ -255,7 +317,9 @@ arith
 							if($2.type==1)
 								{$$.i_val = $2.i_val;$$.type=1;}
 							else
-								{$$.f_val = $2.f_val;$$.type=0;} 
+								{$$.f_val = $2.f_val;$$.type=0;}
+						sprintf($$.buf,"%s",$2.buf);
+ 
 						}
 	| ID                {							
 							int ret=-1;
@@ -280,8 +344,16 @@ arith
 							out=table[ret]->scope_depth;
 							}
 						}
-	| I_CONST			{$$.i_val = $1.i_val; $$.type=1;}
-	| F_CONST			{$$.f_val = $1.f_val; $$.type=0;}
+	| I_CONST			{$$.i_val = $1.i_val; $$.type=1;    
+								char *tmp=malloc(30);
+								sprintf(tmp,"\tldc %d\n",$1.i_val);
+								strcat( $$.buf,tmp);
+						}
+	| F_CONST			{$$.f_val = $1.f_val; $$.type=0;  
+								char *tmp=malloc(30);
+								sprintf(tmp,"\tldc %lf\n",$1.f_val);
+								strcat( $$.buf,tmp);
+						}
 ;
 
 compare_expr 
@@ -584,7 +656,7 @@ declaration
 					ret = insert_symbol($2,1);
 					insert_value(ret,0.0,$5.i_val);
 					}
-			}//這裡要做type chexk
+			}//這裡要做type check
 ;
 
 type
@@ -608,19 +680,43 @@ initializer
 
 
 print_func 
-	: PRINT '(' STRING ')' {printf("PRINT : %s\n",$3) ;}
-	| PRINTLN '(' STRING ')' {printf("PRINTLN : %s\n",$3) ;}
+	: PRINT '(' STRING ')' {
+
+							printf("PRINT : %s\n",$3) ;
+							fprintf(fp, "\tldc \"%s\"\n",$3);
+							fprintf(fp, "\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+							fprintf(fp, "\tswap\n");
+							fprintf(fp, "\tinvokevirtual java/io/PrintStream/print(Ljava/lang/String;)V\n");
+						}
+	| PRINTLN '(' STRING ')' {
+							printf("PRINTLN : %s\n",$3) ;
+							fprintf(fp, "\tldc \"%s\"\n",$3);
+							fprintf(fp, "\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+							fprintf(fp, "\tswap\n");
+							fprintf(fp, "\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+
+						}
 	| PRINT '(' arith ')' 
-						{		                  
+						{	
+							
+							fprintf(fp,"%s",$3.buf);//有關arith結束都要寫入
+										
+							fprintf(fp, "\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+							fprintf(fp, "\tswap\n");
+														                  
 							if($3.type==1)//int
 								{	
-									if(printidscope==0)
-                 								printf("PRINT : %d\n", $3.i_val);
-									else
+									fprintf(fp, "\tinvokevirtual java/io/PrintStream/print(I)V\n");	
+									if(printidscope==0)//要印出數字
+										{	
+                 									printf("PRINT : %d\n", $3.i_val);
+										}
+									else//印出id
 										printf("PRINT : %d (Block:%d)\n", $3.i_val,out);
 								}
                  					else
 								{	
+									fprintf(fp, "\tinvokevirtual java/io/PrintStream/print(F)V\n");	
 									if(printidscope==0)
                  								printf("PRINT : %lf\n", $3.f_val);
 									else
@@ -629,9 +725,16 @@ print_func
 						printidscope=0;
 						}	
 	| PRINTLN '(' arith ')' 
-						{		                  
+						{	
+							fprintf(fp,"%s",$3.buf);//有關arith結束都要寫入
+							//printf("--------------------------------------------\n%s-----------------------------------------",$3.buf);					
+							fprintf(fp, "\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+							fprintf(fp, "\tswap\n");
+								
+	                  
 							if($3.type==1)//int
 								{	
+									fprintf(fp, "\tinvokevirtual java/io/PrintStream/println(I)V\n");	
 									if(printidscope==0)
                  								printf("PRINTLN : %d\n", $3.i_val);
 									else
@@ -639,6 +742,8 @@ print_func
 								}
                  					else
 								{	
+
+									fprintf(fp, "\tinvokevirtual java/io/PrintStream/println(F)V\n");	
 									if(printidscope==0)
                  								printf("PRINTLN : %lf\n", $3.f_val);
 									else
@@ -651,12 +756,31 @@ print_func
 
 %%
 
+
 /* C code section */
 int main(int argc, char** argv)
 {
-    yylineno = 0;
-    yyparse();
+    	yylineno = 0;
+	fp= fopen("Computer.j", "w" );	
+	if( fp == NULL )  {
+		fprintf( stdout, "Open  file  error\n" );
+		exit(-1);
+	}
+	//----basic program --------------------
+	
+	fprintf(fp, ".class public main\n");
+	fprintf(fp, ".super java/lang/Object\n");
+	fprintf(fp, ".method public static main([Ljava/lang/String;)V\n");
+	fprintf(fp, ".limit stack 20\n");
+	fprintf(fp, ".limit locals 100\n");
+	
+    	yyparse();
 
+	fprintf(fp, "\t return\n");
+	fprintf(fp, ".end method\n");
+	
+	fclose(fp);
+	//------------------------------------------------
 	printf("\nParse over, the line number is %d\n",linecount);
 	printf("\ncomment: %d lines\n",commentline);
 
