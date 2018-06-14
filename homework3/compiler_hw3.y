@@ -75,6 +75,7 @@ bol table function - you can add new function if need. */
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token AND OR NOT LB2 RB2
 %token C_COMMENT
+%token SEM
 /* Token with return, which need to sepcify type 這裡好像要跟上面的union一樣*/
 %token <val> I_CONST	
 %token <val> F_CONST
@@ -127,6 +128,7 @@ stat
 						NowDepth--; 
 						//printf("-------------------------Scope %d\n",NowDepth);
 						}
+	| for_loop			{		}
     	| declaration
 	| if_block
     	| print_func
@@ -155,7 +157,7 @@ if_block
 							//printf("-----------------------------asdsad\n");
 							labeltop--;
 						
-						}//這裡結束會寫到ifne Label_0
+						}
 ;
 
 ELSE_block
@@ -186,6 +188,97 @@ ELSE_block
 block_item_list
     : stat
     | block_item_list stat
+;
+
+for_loop 													//for i = 0; i < 15; i++ {		}
+		: FOR assign_expr SEM								{//初始化值後，準備進入for
+																labeltop++;//pointer往前
+																labelStack[labeltop]=globallabel;//Stack內的暫存label=我的label
+																globallabel++;	
+																//For label的數字會跟裡面的if數字一樣
+																fprintf(fp,"FORLabel_%d:\n",labelStack[labeltop]);
+															} 
+		 compare_expr SEM 	For_block						{//for loop 的 body結束後才會進來
+																labeltop--;
+															}
+		| FOR'(' 												{//準備進入for
+																labeltop++;//pointer往前
+																labelStack[labeltop]=globallabel;//Stack內的暫存label=我的label
+																globallabel++;	
+																//For label的數字會跟裡面的if數字一樣
+																fprintf(fp,"FORLabel_%d:\n",labelStack[labeltop]);
+															}	
+		 compare_expr ')'	stat							  	{
+																fprintf(fp,"\tgoto FORLabel_%d\n",labelStack[labeltop]);
+																fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
+															} 
+;
+For_block	:	ID DEC stat							{
+													//---------------------------本來ID做的事		
+													int ret=-1;
+													CheckUndefined = 1;
+													ret=lookup_symbol($1);
+													CheckUndefined = 0;
+													if(ret==-1)
+														printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
+													else{
+															if(strcmp(table[ret]->type,"float32")==0)
+															{
+																insert_value(ret,(table[ret]->f_val)+1,0);
+																char *tmp=malloc(30);
+																fprintf(fp,"\tfload %d\n",ret);
+																fprintf(fp,"\tldc 1.0\n");
+																fprintf(fp,"\tfsub\n");
+																fprintf(fp,"\tfstore %d\n",ret);
+															}
+															else if(strcmp(table[ret]->type,"int")==0)
+															{
+																insert_value(ret,0.0,(table[ret]->i_val)+1);
+																char *tmp=malloc(30);
+																fprintf(fp,"\tiload %d\n",ret);
+																fprintf(fp,"\tldc 1\n");
+																fprintf(fp,"\tisub\n");
+																fprintf(fp,"\tistore %d\n",ret);
+															}
+														}
+													//------------------------------------------------------------					
+													fprintf(fp,"\tgoto FORLabel_%d\n",labelStack[labeltop]);
+													fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
+													labeltop--;
+												}					
+			|	ID INC  stat							{
+													//---------------------------本來ID做的事		
+													int ret=-1;
+													CheckUndefined = 1;
+													ret=lookup_symbol($1);
+													CheckUndefined = 0;
+													if(ret==-1)
+														printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
+													else{
+															if(strcmp(table[ret]->type,"float32")==0)
+															{
+																insert_value(ret,(table[ret]->f_val)+1,0);
+																char *tmp=malloc(30);
+																fprintf(fp,"\tfload %d\n",ret);
+																fprintf(fp,"\tldc 1.0\n");
+																fprintf(fp,"\tfadd\n");
+																fprintf(fp,"\tfstore %d\n",ret);
+															}
+															else if(strcmp(table[ret]->type,"int")==0)
+															{
+																insert_value(ret,0.0,(table[ret]->i_val)+1);
+																char *tmp=malloc(30);
+																fprintf(fp,"\tiload %d\n",ret);
+																fprintf(fp,"\tldc 1\n");
+																fprintf(fp,"\tiadd\n");
+																fprintf(fp,"\tistore %d\n",ret);
+															}
+														}
+													//------------------------------------------------------------					
+													fprintf(fp,"\tgoto FORLabel_%d\n",labelStack[labeltop]);
+													fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
+													labeltop--;
+												}							
 ;
 
 
@@ -324,6 +417,7 @@ arith
 						int ret=-1;
 						CheckUndefined = 1;
 						ret=lookup_symbol($1);
+						CheckUndefined = 0;
 						if(ret==-1)
 							printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 						else{
@@ -357,6 +451,7 @@ arith
 						int ret=-1;
 						CheckUndefined = 1;
 						ret=lookup_symbol($1);
+						CheckUndefined = 0;
 						if(ret==-1)
 							printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 						else{

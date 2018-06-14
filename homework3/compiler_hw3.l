@@ -167,7 +167,7 @@ double {digit}+"."{digit}+
 
 {id}	{AllocAndCopy(yytext);return ID;}
 
-
+[;]	{return SEM;}
 
 [\n]		{/*linecount++;*/ varflag = 0;nowid=NULL;doubleComment=0;
 				yylineno++;
