@@ -601,18 +601,21 @@ assign_expr
 								if(strcmp(table[ret]->type,"float32")==0){
 								if($3.type==0){//ID是float且arith是float
 									table[ret]->f_val +=$3.f_val;
-									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+
 									//x+arith
 									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+
 									fprintf(fp,"\tfadd\n");
 									fprintf(fp, "\tfstore %d\n",ret);									
 								}
 								else{//ID是float且arith是int
 									table[ret]->f_val +=(double)$3.i_val;
+
+									fprintf(fp,"\tfload %d\n",ret);
 									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
 									//x+arith
 									fprintf(fp,"\ti2f\n");
-									fprintf(fp,"\tfload %d\n",ret);
 									fprintf(fp,"\tfadd\n");
 									fprintf(fp,"\tfstore %d\n",ret);	
 								}
@@ -620,18 +623,20 @@ assign_expr
 								else if(strcmp(table[ret]->type,"int")==0){
 								if($3.type==1){//ID是int且arith是int
 									table[ret]->i_val +=$3.i_val;
-									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+
 									//x+arith
 									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
 									fprintf(fp,"\tiadd\n");
 									fprintf(fp, "\tistore %d\n",ret);		
 								}
 								else{//ID是int且arith是float
-									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
+									//printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
+
+									fprintf(fp,"\tiload %d\n",ret);
 									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
 									//x+arith
 									fprintf(fp,"\tf2i\n");
-									fprintf(fp,"\tiload %d\n",ret);
 									fprintf(fp,"\tiadd\n");
 									fprintf(fp, "\tistore %d\n",ret);	
 								}
@@ -648,19 +653,44 @@ assign_expr
 							if(ret==-1)
 								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
-								if(strcmp(table[ret]->type,"float32")==0){
-								if($3.type==0)
+							if(strcmp(table[ret]->type,"float32")==0){
+								if($3.type==0){//ID是float，arith是float
 									table[ret]->f_val -=$3.f_val;
-								else
+
+									//x-arith
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tfsub\n");
+									fprintf(fp, "\tfstore %d\n",ret);	
+								}
+								else{//ID是float，arith是int
 									table[ret]->f_val -=(double)$3.i_val;
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\ti2f\n");
+									fprintf(fp,"\tfsub\n");
+									fprintf(fp,"\tfstore %d\n",ret);	
 								}
-								else if(strcmp(table[ret]->type,"int")==0){
-								if($3.type==1)
+
+							}
+							else if(strcmp(table[ret]->type,"int")==0){
+								if($3.type==1){//ID是int，arith是int
 									table[ret]->i_val -=$3.i_val;
-								else
-									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
-								
+									
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tisub\n");
+									fprintf(fp, "\tistore %d\n",ret);
+								}	
+								else{//ID是int，arith是float
+									//printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tf2i\n");
+									fprintf(fp,"\tisub\n");
+									fprintf(fp, "\tistore %d\n",ret);	
 								}
+							}
 								
 
 							}
@@ -674,20 +704,41 @@ assign_expr
 							if(ret==-1)
 								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
-								if(strcmp(table[ret]->type,"float32")==0){
-								if($3.type==0)
+							if(strcmp(table[ret]->type,"float32")==0){
+								if($3.type==0){//ID是float，arith是float
 									table[ret]->f_val *=$3.f_val;
-								else
-									table[ret]->f_val *=(double)$3.i_val;
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tfmul\n");
+									fprintf(fp, "\tfstore %d\n",ret);	
 								}
-								else if(strcmp(table[ret]->type,"int")==0){
-								if($3.type==1)
-									table[ret]->i_val *=$3.i_val;
-								else
-									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
-								
+								else{//ID是float，arith是int
+									table[ret]->f_val *=(double)$3.i_val;
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\ti2f\n");
+									fprintf(fp,"\tfmul\n");
+									fprintf(fp,"\tfstore %d\n",ret);	
 								}
 
+							}
+							else if(strcmp(table[ret]->type,"int")==0){
+								if($3.type==1){//ID是int，arith是int
+									table[ret]->i_val *=$3.i_val;
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\timul\n");
+									fprintf(fp, "\tistore %d\n",ret);
+								}	
+								else{//ID是int，arith是float
+									//printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tf2i\n");
+									fprintf(fp,"\timul\n");
+									fprintf(fp, "\tistore %d\n",ret);	
+								}
+							}
 							}
 							}
 	|	ID DIV_ASSIGN arith      {
@@ -699,22 +750,43 @@ assign_expr
 							if(ret==-1)
 								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
-								if(strcmp(table[ret]->type,"float32")==0){
-								if($3.type==0)
+							if(strcmp(table[ret]->type,"float32")==0){
+								if($3.type==0){//ID是float，arith是float
 									table[ret]->f_val /=$3.f_val;
-								else
-									table[ret]->f_val /=(double)$3.i_val;
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tfdiv\n");
+									fprintf(fp, "\tfstore %d\n",ret);	
 								}
-								else if(strcmp(table[ret]->type,"int")==0){
-								if($3.type==1)
-									table[ret]->i_val /=$3.i_val;
-								else
-									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
-								
+								else{//ID是float，arith是int
+									table[ret]->f_val /=(double)$3.i_val;
+									fprintf(fp,"\tfload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\ti2f\n");
+									fprintf(fp,"\tfdiv\n");
+									fprintf(fp,"\tfstore %d\n",ret);	
 								}
 
 							}
+							else if(strcmp(table[ret]->type,"int")==0){
+								if($3.type==1){//ID是int，arith是int
+									table[ret]->i_val /=$3.i_val;
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tidiv\n");
+									fprintf(fp, "\tistore %d\n",ret);
+								}	
+								else{//ID是int，arith是float
+									//printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tf2i\n");
+									fprintf(fp,"\tidiv\n");
+									fprintf(fp, "\tistore %d\n",ret);	
+								}
 							}
+							}
+						}
 	|	ID MOD_ASSIGN arith      {
 							printf("MOD_ASSIGN\n");
 							int ret=-1;
@@ -725,10 +797,14 @@ assign_expr
 								printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);
 							else{
 								if(strcmp(table[ret]->type,"int")==0&&$3.type==1){
-								table[ret]->i_val %=$3.i_val;
+									table[ret]->i_val %=$3.i_val;
+									fprintf(fp,"\tiload %d\n",ret);
+									fprintf(fp,"%s",$3.buf);//所有arith結束都要寫入
+									fprintf(fp,"\tirem\n");
+									fprintf(fp, "\tistore %d\n",ret);
 								}
 								else{
-								printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
+									printf("<ERROR>:assign float to int variable (line %d)\n",linecount);
 								} 
 							}
 							}

@@ -1,9 +1,16 @@
-var x int
-x=x+1
-x+=1
-x+=2.2
-println(x)
+var x3 int
+x3=x3+1
+x3+=1
+x3+=2.2
+println(x3)//4
 
-var y float32 = 8.5
-y=y+(2+335)*5%8//y+5
-println(y)
+x3*=2.2
+println(x3)//8
+x3/=2
+println(x3)//4
+x3%=3
+println(x3)//1
+x3+=2.2//3
+x3-=3.8//0
+println(x3)//0
+
