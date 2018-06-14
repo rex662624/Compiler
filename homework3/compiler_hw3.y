@@ -8,7 +8,8 @@
 extern int yylineno;
 extern int yylex();
 void yyerror(char *);
-/* Symbol table function - you can add new function if need. */
+/* Sym
+bol table function - you can add new function if need. */
 //原來的 lex
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -42,8 +43,13 @@ void yyerror(char *);
 	int printidscope=0;//表示目前是不是要print id 或是數字 
 	int out=0;//要輸出的值
 	//jasmin
+	int ERROR=0;//程式有沒有錯誤
 	FILE * fp;
 	
+	int labelStack[256];//目前存的 label
+	int labeltop;//目前所在的label
+	int globallabel=0;//目前label編到幾號
+
 %}
 
 /* Using union to define nonterminal and token type */
@@ -95,7 +101,7 @@ void yyerror(char *);
 %left MUL DIV MOD
 %left INC DEC
 %left UMINUS
-
+%right ')' ELSE
 /* Yacc will start at this nonterminal */
 %start program
 
@@ -103,7 +109,7 @@ void yyerror(char *);
 %%
 
 program
-    : program stat
+    :  program stat 
     |
 ;
 
@@ -119,7 +125,7 @@ stat
 						// NEW 把目前scope的vaild設為2表示dead不能用
 						ScopeOver();
 						NowDepth--; 
-						//printf("Scope %d\n",NowDepth);
+						//printf("-------------------------Scope %d\n",NowDepth);
 						}
     	| declaration
 	| if_block
@@ -137,17 +143,44 @@ stat
 				
 			}
 	| C_COMMENT
+	
 ;
 if_block
-    : IF '(' compare_expr  ')' stat ELSE stat 	{
-											//注意到
-											
-									    	}
-    | IF '(' compare_expr  ')' stat			{
-									
+    : 	IF					{//進到if表示新label開始
+							labeltop++;//pointer往前
+							labelStack[labeltop]=globallabel;//Stack內的暫存label=我的label
+							globallabel++;
+						} 	
+	'(' compare_expr ')' stat ELSE_block	{
+							//printf("-----------------------------asdsad\n");
+							labeltop--;
+						
+						}//這裡結束會寫到ifne Label_0
+;
 
-
-										}
+ELSE_block
+	:ELSE 				{								
+							fprintf(fp,"\tgoto EXIT_%d\n",labelStack[labeltop]);
+							fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
+						}
+	stat 				{
+							fprintf(fp,"EXIT_%d:\n",labelStack[labeltop]);
+							//nowlabel--;//結束這個scope，要還原到上個scope的
+						}
+	| NEWLINE			{//沒有else的情況，可以想成else的do something 沒東西
+											linecount++;
+											//printf("-----------------------------label_%d\n",labelStack[labeltop]);
+											fprintf(fp,"\tgoto EXIT_%d\n",labelStack[labeltop]);
+											fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
+											fprintf(fp,"EXIT_%d:\n",labelStack[labeltop]);
+						}
+	|					{//EOF
+											linecount++;
+											fprintf(fp,"\tgoto EXIT_%d\n",labelStack[labeltop]);
+											fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
+											fprintf(fp,"EXIT_%d:\n",labelStack[labeltop]);
+						}
+	
 ;
 
 block_item_list
@@ -405,30 +438,48 @@ arith
 ;
 
 compare_expr 
-		:arith GT arith	{
+		:arith GT arith	{//>
+							sprintf($$.buf,"%s","");//先清空
 							int ret;
-							if($1.type==1&&$3.type==1)
+							if($1.type==1&&$3.type==1)// compare between int
 							{
 								ret=($1.i_val>$3.i_val);
 								if(ret)
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tisub\n");
+								sprintf(tmp,"\tifle Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
+						
+								
 							}
-							else if($1.type==0&&$3.type==0)
+							else if($1.type==0&&$3.type==0)// compare between float
 							{
 								ret=($1.f_val>$3.f_val);
 								if(ret)
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tfsub\n");
+								sprintf(tmp,"\tifle Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 								
 							else
 								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
-		|arith LT arith {
+		|arith LT arith {//<
+							sprintf($$.buf,"%s","");//先清空
 							int ret;
 							if($1.type==1&&$3.type==1)
 							{
@@ -437,6 +488,13 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tisub\n");
+								sprintf(tmp,"\tifge Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 							else if($1.type==0&&$3.type==0)
 							{
@@ -445,13 +503,21 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tfsub\n");
+								sprintf(tmp,"\tifge Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 								
 							else
 								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
-		|arith GE arith	{
+		|arith GE arith	{//>=
+							sprintf($$.buf,"%s","");//先清空
 							int ret;
 							if($1.type==1&&$3.type==1)
 							{
@@ -460,6 +526,13 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tisub\n");
+								sprintf(tmp,"\tiflt Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 							else if($1.type==0&&$3.type==0)
 							{
@@ -468,13 +541,21 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tfsub\n");
+								sprintf(tmp,"\tiflt Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 								
 							else
 								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
-		|arith LE arith {
+		|arith LE arith {//<=
+							sprintf($$.buf,"%s","");//先清空
 							int ret;
 							if($1.type==1&&$3.type==1)
 							{
@@ -483,6 +564,13 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tisub\n");
+								sprintf(tmp,"\tifgt Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 							else if($1.type==0&&$3.type==0)
 							{
@@ -491,13 +579,21 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tfsub\n");
+								sprintf(tmp,"\tifgt Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 								
 							else
 								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
-		|arith EQ arith {
+		|arith EQ arith {//==
+							sprintf($$.buf,"%s","");//先清空
 							int ret;
 							if($1.type==1&&$3.type==1)
 							{
@@ -506,6 +602,14 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tisub\n");
+								sprintf(tmp,"\tifne Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);		
 							}
 							else if($1.type==0&&$3.type==0)
 							{
@@ -514,13 +618,21 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tfsub\n");
+								sprintf(tmp,"\tifne Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 								
 							else
 								printf("<ERROR>:compare between different type (line %d)\n",linecount);						
 
 						}
-		|arith NE arith {
+		|arith NE arith {//!=
+							sprintf($$.buf,"%s","");//先清空
 							int ret;
 							if($1.type==1&&$3.type==1)
 							{
@@ -529,6 +641,13 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tisub\n");
+								sprintf(tmp,"\tifeq Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 							else if($1.type==0&&$3.type==0)
 							{
@@ -537,6 +656,14 @@ compare_expr
 									printf("True\n");
 								else
 									printf("False\n");	
+
+								char* tmp=malloc(30);
+								strcat($$.buf,$1.buf);
+								strcat($$.buf,$3.buf);
+								strcat($$.buf, "\tfsub\n");
+								sprintf(tmp,"\tifeq Label_%d\n",labelStack[labeltop]);	
+								strcat($$.buf,tmp);	
+								fprintf(fp,"%s",$$.buf);	
 							}
 								
 							else
@@ -959,6 +1086,11 @@ int main(int argc, char** argv)
 		fprintf( stdout, "Open  file  error\n" );
 		exit(-1);
 	}
+	//把lablestack設成-1
+	int i;
+	for(i=0;i<256;i++)labelStack[i]=-1;
+	labeltop=-1;
+	
 	//----basic program --------------------
 	
 	fprintf(fp, ".class public main\n");
@@ -979,6 +1111,11 @@ int main(int argc, char** argv)
 
 	if(CreateTableFlag==1)//如果有建立symbol table
 		dump_symbol();
+
+	if(ERROR==1){//有錯誤不要產生.j檔
+		remove("Computer.j");
+
+	}
 
 	
     return 0;

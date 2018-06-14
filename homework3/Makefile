@@ -16,10 +16,10 @@ lex.yy.c:
 	@lex ${FNAME}.l
 
 y.tab.c:
-	@yacc ${YFLAG} ${FNAME}.y
+	@yacc -v ${YFLAG} ${FNAME}.y
 
 test:
-	@./${PARSER} < ./input/test_scope.go #< ./input/basic_declaration.go 
+	@./${PARSER} < ./input/basic_arithmetic.go #< ./input/basic_declaration.go 
 	@echo -e "\n\033[1;33mmain.class output\033[0m"
 	@java -jar jasmin.jar ${JAVABYTE}.j
 	@java ${EXE} 
