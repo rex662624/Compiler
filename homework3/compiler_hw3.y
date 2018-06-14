@@ -85,6 +85,7 @@ void yyerror(char *);
 %type <string> type 
 %type <val> arith
 %type <val> initializer
+%type <val> compare_expr
 /*associate*/
 
 
@@ -107,18 +108,22 @@ program
 ;
 
 stat
-	: '{' 	{NowDepth++;}
-		program //{printf("Scope %d\n",NowDepth);}
-		'}'	{	
-				
-				// NEW 把目前scope的vaild設為2表示dead不能用
-				ScopeOver();
-				NowDepth--; 
-				//printf("Scope %d\n",NowDepth);
-			}
-    | declaration
+	: 	'{' 				{NowDepth++;}
+		
+		block_item_list 	{
+							
+							printf("Scope %d\n",NowDepth);
+						}
+		
+		'}'				{	
+						// NEW 把目前scope的vaild設為2表示dead不能用
+						ScopeOver();
+						NowDepth--; 
+						//printf("Scope %d\n",NowDepth);
+						}
+    	| declaration
 	| if_block
-    | print_func
+    	| print_func
 	| NEWLINE {linecount++;}
 	| assign_expr
 	| compare_expr
@@ -134,23 +139,22 @@ stat
 	| C_COMMENT
 ;
 if_block
-	: IF '(' compare_expr ')''{'if_stat '}' else_stat 	
-		{
-		//	printf("---a block line %d\n",linecount);
-		}
-	
-;
-if_stat
-	: stat if_stat
-	|	
+    : IF '(' compare_expr  ')' stat ELSE stat 	{
+											//注意到
+											
+									    	}
+    | IF '(' compare_expr  ')' stat			{
+									
+
+
+										}
 ;
 
-else_stat
-	: ELSE IF '(' compare_expr ')' '{' if_stat '}' else_stat
-	| ELSE '{' if_stat '}' else_stat
-	| NEWLINE {linecount++;}
-	| 	
+block_item_list
+    : stat
+    | block_item_list stat
 ;
+
 
 arith
 	: arith ADD arith	{ 
