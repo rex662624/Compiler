@@ -76,6 +76,7 @@ bol table function - you can add new function if need. */
 %token AND OR NOT LB2 RB2
 %token C_COMMENT
 %token SEM
+%token FUNC
 /* Token with return, which need to sepcify type 這裡好像要跟上面的union一樣*/
 %token <val> I_CONST	
 %token <val> F_CONST

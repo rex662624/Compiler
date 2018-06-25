@@ -58,6 +58,8 @@ double {digit}+"."{digit}+
 /* Rules section */
 %%
 
+"func" { return FUNC ;}
+
  /* Arithmetic */
 "+"     { return ADD; }
 "-" 	{ return SUB; }
@@ -175,7 +177,6 @@ double {digit}+"."{digit}+
 [ \t]		{;} /* Ignore */
 [^; \t] 	{;} /* Ignore other charactor sets */
 <<EOF>> {yyterminate();}
-
 
 
 %%
