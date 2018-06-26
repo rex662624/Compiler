@@ -1,11 +1,9 @@
+print("Hello")
 println("Hello World")
-print("Hello World")
-
-println("123456")
-
 //--------------
 
-println(1+2)//3
+println(1.0+2.0)//3
+
 println(1+2*3)//7
 println(3*(1+2))//9
 println((1+2)*(5%3))//6

@@ -13,7 +13,7 @@ bol table function - you can add new function if need. */
 //原來的 lex
 	#include <stdio.h>
 	#include <stdlib.h>
-	#define TableSize 500
+	#define TableSize 1000
 	/* Symbol table function */
 	void create_symbol();
 	int insert_symbol(char*,int);
@@ -43,12 +43,15 @@ bol table function - you can add new function if need. */
 	int printidscope=0;//表示目前是不是要print id 或是數字 
 	int out=0;//要輸出的值
 	//jasmin
+
 	int ERROR=0;//程式有沒有錯誤
 	FILE * fp;
 	
 	int labelStack[256];//目前存的 label
 	int labeltop;//目前所在的label
 	int globallabel=0;//目前label編到幾號
+
+	int definefunct=0;//看看有沒有define function 如果沒有要把 global 視為 main
 
 %}
 
@@ -75,8 +78,9 @@ bol table function - you can add new function if need. */
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token AND OR NOT LB2 RB2
 %token C_COMMENT
-%token SEM
-%token FUNC
+//----func
+%token SEM COM
+%token FUNC 
 /* Token with return, which need to sepcify type 這裡好像要跟上面的union一樣*/
 %token <val> I_CONST	
 %token <val> F_CONST
@@ -94,6 +98,8 @@ bol table function - you can add new function if need. */
 %type <val> arith
 %type <val> initializer
 %type <val> compare_expr
+%type <val> call_function
+%type <val> argument_list
 /*associate*/
 
 
@@ -147,7 +153,31 @@ stat
 			}
 	| C_COMMENT
 	
+	| function
+	
 ;
+//--------------------------function
+function
+	:FUNC ID '(' parameter_list ')' funct_type 
+	'{' 
+	block_item_list 
+	'}'
+;
+
+funct_type
+    : INT 
+    | FLOAT 
+    | VOID 
+    |
+;
+parameter_list
+	:  ID type 
+	| ID type COM  parameter_list 
+	|
+;
+
+//--------------------------if
+
 if_block
     : 	IF					{//進到if表示新label開始
 							labeltop++;//pointer往前
@@ -190,6 +220,8 @@ block_item_list
     : stat
     | block_item_list stat
 ;
+
+//--------------------------for
 
 for_loop 													//for i = 0; i < 15; i++ {		}
 		: FOR assign_expr SEM								{//初始化值後，準備進入for
@@ -282,7 +314,7 @@ For_block	:	ID DEC stat							{
 												}							
 ;
 
-
+//-------------------------- basic
 arith
 	: arith ADD arith	{ 
 		sprintf($$.buf,"%s","");//先清空	
@@ -531,7 +563,20 @@ arith
 								sprintf(tmp,"\tldc %lf\n",$1.f_val);
 								strcat( $$.buf,tmp);
 						}
+	| call_function
 ;
+
+call_function
+	: ID '(' argument_list ')' {sprintf($$.buf,"%s",$3.buf);}
+	;
+
+argument_list
+	: argument_list COM arith 
+	| arith
+	|	{sprintf($$.buf," ");}//沒有argument
+	;
+
+ 
 
 compare_expr 
 		:arith GT arith	{//>
