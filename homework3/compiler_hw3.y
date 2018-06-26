@@ -31,9 +31,12 @@ bol table function - you can add new function if need. */
  			double f_val;
  	};
 	int vaild;
-
 	int scope_depth;
+	//NEW
+	int function;		//==1代表是function
+	char sign[50];	//function的參數和return type
 	}symboltable;
+
 	symboltable* table[TableSize];
 	int CreateTableFlag=0;	
 	int CheckUndefined=0;
@@ -52,7 +55,9 @@ bol table function - you can add new function if need. */
 	int globallabel=0;//目前label編到幾號
 
 	int definefunct=0;//看看有沒有define function 如果沒有要把 global 視為 main
-
+	//symbol_table Tempparameter[10];//先暫存起來，等等要傳進function的table裡面
+	int Tempindex=0;//for上面的Tempparameter index
+	symboltable* Temptable[TableSize];
 %}
 
 /* Using union to define nonterminal and token type */
@@ -100,6 +105,8 @@ bol table function - you can add new function if need. */
 %type <val> compare_expr
 %type <val> call_function
 %type <val> argument_list
+%type <string> funct_type 
+%type <string> parameter_list
 /*associate*/
 
 
@@ -158,22 +165,179 @@ stat
 ;
 //--------------------------function
 function
-	:FUNC ID '(' parameter_list ')' funct_type 
+	:FUNC ID '('
+			{ //注意這個大括號好像是 $4 ??
+				int i; 
+					for(i=0;i<TableSize;i++){
+
+						//NEW temptable
+						Temptable[i]= malloc(sizeof(struct symbol_table));
+						Temptable[i]->type=NULL;
+						Temptable[i]->id=NULL;
+						Temptable[i]->vaild=0;
+						Temptable[i]->scope_depth=-1;
+					}	
+
+				//因為宣告function，所以要先把上面的main拿掉重開
+				if(definefunct==0){
+				fclose(fp);
+				fp= fopen("Computer.j", "w" );
+				fprintf(fp,"%s",".class public main\n");
+				fprintf(fp,"%s",".super java/lang/Object\n\n");
+				definefunct=1;
+				}
+				fprintf(fp,".method public static %s(",$2);
+				
+					//先交換一次table以讓parameter插入
+					symboltable* temp[TableSize];
+					for(i=0;i<TableSize;i++){	
+					temp[i]=Temptable[i];
+					Temptable[i]=table[i];
+					table[i]=temp[i];
+					}
+					
+				
+			} 
+
+	parameter_list  ')' funct_type 
+			{
+				//1.交換回來
+				int i;
+				symboltable* temp[TableSize];
+					for(i=0;i<TableSize;i++){	
+					temp[i]=Temptable[i];
+					Temptable[i]=table[i];
+					table[i]=temp[i];
+					}
+				char sign[50];//function 的參數和return type
+				//把parameter list寫入
+				
+
+				if(strcmp($2,"main")==0)
+					sprintf(sign,"[Ljava/lang/String;");
+				else
+					sprintf(sign,"%s",$5);
+
+				if(strcmp($7,"float32")==0)
+					strcat(sign,")F\n");
+				else if (strcmp($7,"int")==0)
+					strcat(sign,")I\n");
+				else if (strcmp($7,"void")==0)
+					strcat(sign,")V\n");	
+
+				fprintf(fp,"%s",sign);
+				fprintf(fp, ".limit stack 100\n");
+				fprintf(fp, ".limit locals 100\n");
+				
+				//---------------插入到symboltable 因為下面要用
+				int ret;
+				if (strcmp($7,"int")==0){
+					printf("---------------------\n");
+					ret=insert_symbol($2,1);
+					table[ret]->function=1;//代表是function ID
+					sprintf(table[ret]->sign,"(%s",sign);
+
+				}
+				else if(strcmp($7,"float32")==0){
+					ret=insert_symbol($2,0);
+					table[ret]->function=1;//代表是function ID
+					sprintf(table[ret]->sign,"(%s",sign);
+
+				}
+				else if(strcmp($7,"void")==0){
+					ret=insert_symbol($2,2);
+					table[ret]->function=1;//代表是function ID
+					sprintf(table[ret]->sign,"(%s",sign);
+
+				}
+
+					//開始進入function
+
+					//1.先交換table
+					for(i=0;i<TableSize;i++){	
+					temp[i]=Temptable[i];
+					Temptable[i]=table[i];
+					table[i]=temp[i];
+					}
+						
+			}
 	'{' 
 	block_item_list 
-	'}'
+	'}'		
+			{
+				if(strcmp($7,"float32")==0)
+					fprintf(fp,"%s","\tfreturn\n.end method\n\n");
+				else if (strcmp($7,"int")==0)
+					fprintf(fp,"%s","\tireturn\n.end method\n\n");
+				else if (strcmp($7,"void")==0)
+					fprintf(fp,"%s","\treturn\n.end method\n\n");	
+				
+				Tempindex=0;
+				//出function
+				//2.再交換一次
+				int i;
+				symboltable* temp[TableSize];
+				for(i=0;i<TableSize;i++){	
+				temp[i]=Temptable[i];
+				Temptable[i]=table[i];
+				table[i]=temp[i];
+				free(Temptable[i]);
+				}
+			}
 ;
 
 funct_type
-    : INT 
-    | FLOAT 
-    | VOID 
-    |
+    : INT {$$=$1;}
+    | FLOAT {$$=$1;}
+    | VOID {$$=$1;}
+    |	{$$="void";}
 ;
 parameter_list
 	:  ID type 
-	| ID type COM  parameter_list 
-	|
+				{	
+					int ret;
+							if(strcmp($2,"int")==0){
+								ret=insert_symbol($1,1);
+								
+								strcat($$,"I");
+							}else{
+								ret=insert_symbol($1,0);
+								strcat($$,"F");
+							}	
+//					sprintf(Tempparameter[Tempindex++],"%s",$1);
+					sprintf($$,"%s","");//先清空
+/*
+					if(strcmp($2,"float32")==0)
+						strcat($$,"F");
+					else if (strcmp($2,"int")==0)
+						strcat($$,"I");
+*/
+						
+				}
+	| parameter_list COM ID type   
+				{
+							int ret;
+							if(strcmp($4,"int")==0){
+								ret=insert_symbol($3,1);
+								strcat($$,"I");
+							}else{
+								ret=insert_symbol($3,0);
+								strcat($$,"F");
+							}	
+//				sprintf(Tempparameter[Tempindex++],"%s",$3);
+				sprintf($$,"%s",$1);		
+/*
+					if(strcmp($4,"float32")==0)
+						strcat($$,"F");
+					else if (strcmp($4,"int")==0)
+						strcat($$,"I");	
+*/					
+
+				}
+
+	|			{
+					strcat($$,"");//不加會有warning 其實沒作用
+				}
 ;
 
 //--------------------------if
@@ -563,16 +727,32 @@ arith
 								sprintf(tmp,"\tldc %lf\n",$1.f_val);
 								strcat( $$.buf,tmp);
 						}
-	| call_function
+	| call_function		{
+							if($1.type==1)
+								{$$.i_val = $1.i_val;$$.type=1;}
+							else
+								{$$.f_val = $1.f_val;$$.type=0;}
+							sprintf($$.buf,"%s",$1.buf);
+						}
 ;
 
 call_function
-	: ID '(' argument_list ')' {sprintf($$.buf,"%s",$3.buf);}
-	;
+	: ID '('argument_list ')' 
+				{
+				sprintf($$.buf,"\tinvokestatic main/%s",$1);//call function
+				//找到 type 和 argument
+				int ret ;
+				ret=lookup_symbol($1);
+				strcat($$.buf,table[ret]->sign);
+				} ;
 
-argument_list
-	: argument_list COM arith 
-	| arith
+argument_list 	//準備argument在stack
+	: argument_list COM arith { 
+								fprintf(fp,"%s",$3.buf);//所有arith結束要寫入
+							}
+	| arith	{ 
+				fprintf(fp,"%s",$1.buf);//所有arith結束要寫入
+			}
 	|	{sprintf($$.buf," ");}//沒有argument
 	;
 
@@ -1241,10 +1421,10 @@ int main(int argc, char** argv)
 	fprintf(fp, ".limit locals 100\n");
 	
     	yyparse();
-
+if(definefunct==0){
 	fprintf(fp, "\treturn\n");
 	fprintf(fp, ".end method\n");
-	
+	}
 	fclose(fp);
 	//------------------------------------------------
 	printf("\nParse over, the line number is %d\n",linecount);
@@ -1276,11 +1456,12 @@ void create_symbol()
 	table[i]->id=NULL;
 	table[i]->vaild=0;
 	table[i]->scope_depth=-1;
+
 	}	
 
 }
 int insert_symbol(char* id , int type) {
-
+	
 	if(CreateTableFlag==0){//not create table yet
 		create_symbol();
 		table[0]->id = malloc(strlen(id)+1);
@@ -1291,6 +1472,8 @@ int insert_symbol(char* id , int type) {
 			table[0]->type="int";
 		else if(type==0)//float
 			table[0]->type="float32";
+		else if(type==2)//void
+			table[0]->type="void";
 		//New
 		table[0]->scope_depth=NowDepth;
 
@@ -1299,6 +1482,9 @@ int insert_symbol(char* id , int type) {
 	else{
 		if(lookup_symbol(id)==-1){//not declare yet(id not in symbol table)
 		int i;
+		
+		
+			printf("----------------%s\n",table[0]->id);
 		for(i=0;i<TableSize;i++)//look for space to place id
 			if(table[i]->vaild==0){
 				table[i]->id = malloc(strlen(id)+1);
@@ -1310,7 +1496,8 @@ int insert_symbol(char* id , int type) {
 	                	        table[i]->type="int";
         		        else if(type==0)//float
                         		table[i]->type="float32";
-				
+				else if(type==2)//void
+					table[i]->type="void";
 				//New
 				table[i]->scope_depth=NowDepth;
 				
@@ -1333,6 +1520,7 @@ void insert_value(int ret , double f_val, int i_val){
 			}
 			else if(table[ret]->vaild==1&&strcmp(table[ret]->type,"int")==0)	
 			{
+
 				table[ret]->i_val=i_val;
 			}
 		
@@ -1356,17 +1544,14 @@ int lookup_symbol(char *id) {//command=0:declare command=1:取出var
 //        	printf("<ERROR>:Undefined variable %s (line %d)\n",id,linecount);
 		return smallest;//沒有defined
 	}
-	
 	//查看是否redefined
 	for(i=0;i<TableSize;i++){
-			//NEW 會進到這裡表示是宣告
-			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0&&table[i]->scope_depth==NowDepth){
-			
+			//NEW 會進到這裡表示是宣告				
+			if(table[i]->vaild==1&&strcmp(table[i]->id,id)==0&&table[i]->scope_depth==NowDepth){		
 			printf("<ERROR>:Redefined variable %s,table index:%d (line %d)\n",id,i+1,linecount);
 			return i;
 			}
 	}
-	
 	return -1;
 }
 void dump_symbol() {
@@ -1408,4 +1593,3 @@ void ScopeOver()
 		}
 	}
 }
-
