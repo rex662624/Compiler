@@ -19,7 +19,7 @@ y.tab.c:
 	@yacc -v ${YFLAG} ${FNAME}.y
 
 test:
-	@./${PARSER} < ./input/advance_u_def_func.go #< ./input/basic_declaration.go 
+	@./${PARSER} < ./input/test.go #< ./input/basic_declaration.go 
 	@echo -e "\n\033[1;33mmain.class output\033[0m"
 	@java -jar jasmin.jar ${JAVABYTE}.j
 	@java ${EXE} 

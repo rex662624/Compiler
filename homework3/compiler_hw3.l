@@ -57,7 +57,7 @@ double {digit}+"."{digit}+
 
 /* Rules section */
 %%
-
+","	     { return COM ;}
 "func" { return FUNC ;}
 
  /* Arithmetic */

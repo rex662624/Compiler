@@ -6,23 +6,24 @@
    NOT
    LB2
    RB2
-   FUNC
 
 
-狀態 19 衝突：1 項偏移/縮減
-狀態 69 衝突：1 項偏移/縮減
-狀態 70 衝突：1 項偏移/縮減
-狀態 71 衝突：1 項偏移/縮減
-狀態 72 衝突：1 項偏移/縮減
-狀態 73 衝突：1 項偏移/縮減
-狀態 83 衝突：1 項偏移/縮減
-狀態 84 衝突：1 項偏移/縮減
-狀態 99 衝突：1 項偏移/縮減
-狀態 102 衝突：2 項偏移/縮減
-狀態 124 衝突：1 項偏移/縮減
-狀態 125 衝突：1 項偏移/縮減
-狀態 126 衝突：1 項偏移/縮減
-狀態 127 衝突：1 項偏移/縮減
+狀態 16 衝突：1 項偏移/縮減
+狀態 21 衝突：1 項偏移/縮減
+狀態 34 衝突：1 項偏移/縮減
+狀態 77 衝突：1 項偏移/縮減
+狀態 78 衝突：1 項偏移/縮減
+狀態 79 衝突：1 項偏移/縮減
+狀態 80 衝突：1 項偏移/縮減
+狀態 81 衝突：1 項偏移/縮減
+狀態 91 衝突：1 項偏移/縮減
+狀態 92 衝突：1 項偏移/縮減
+狀態 111 衝突：1 項偏移/縮減
+狀態 117 衝突：2 項偏移/縮減
+狀態 147 衝突：1 項偏移/縮減
+狀態 148 衝突：1 項偏移/縮減
+狀態 149 衝突：1 項偏移/縮減
+狀態 150 衝突：1 項偏移/縮減
 
 
 文法
@@ -46,182 +47,213 @@
    12     | compare_expr
    13     | arith
    14     | C_COMMENT
+   15     | function
 
-   15 $@3: %empty
+   16 function: FUNC ID '(' parameter_list ')' funct_type '{' block_item_list '}'
 
-   16 if_block: IF $@3 '(' compare_expr ')' stat ELSE_block
-
-   17 $@4: %empty
-
-   18 ELSE_block: ELSE $@4 stat
-   19           | NEWLINE
+   17 funct_type: INT
+   18           | FLOAT
+   19           | VOID
    20           | %empty
 
-   21 block_item_list: stat
-   22                | block_item_list stat
+   21 parameter_list: ID type
+   22               | ID type COM parameter_list
+   23               | %empty
 
-   23 $@5: %empty
+   24 $@3: %empty
 
-   24 for_loop: FOR assign_expr SEM $@5 compare_expr SEM For_block
+   25 if_block: IF $@3 '(' compare_expr ')' stat ELSE_block
 
-   25 $@6: %empty
+   26 $@4: %empty
 
-   26 for_loop: FOR '(' $@6 compare_expr ')' stat
+   27 ELSE_block: ELSE $@4 stat
+   28           | NEWLINE
+   29           | %empty
 
-   27 For_block: ID DEC stat
-   28          | ID INC stat
-   29          | for_assign stat
+   30 block_item_list: stat
+   31                | block_item_list stat
 
-   30 for_assign: ID ASSIGN arith
-   31           | ID ADD_ASSIGN arith
-   32           | ID SUB_ASSIGN arith
-   33           | ID MUL_ASSIGN arith
-   34           | ID DIV_ASSIGN arith
+   32 $@5: %empty
 
-   35 arith: arith ADD arith
-   36      | arith SUB arith
-   37      | arith MUL arith
-   38      | arith DIV arith
-   39      | arith MOD arith
-   40      | ID INC
-   41      | ID DEC
-   42      | SUB arith
-   43      | '(' arith ')'
-   44      | ID
-   45      | I_CONST
-   46      | F_CONST
+   33 for_loop: FOR assign_expr SEM $@5 compare_expr SEM For_block
 
-   47 compare_expr: arith GT arith
-   48             | arith LT arith
-   49             | arith GE arith
-   50             | arith LE arith
-   51             | arith EQ arith
-   52             | arith NE arith
+   34 $@6: %empty
 
-   53 assign_expr: ID ASSIGN arith
-   54            | ID ADD_ASSIGN arith
-   55            | ID SUB_ASSIGN arith
-   56            | ID MUL_ASSIGN arith
-   57            | ID DIV_ASSIGN arith
-   58            | ID MOD_ASSIGN arith
+   35 for_loop: FOR '(' $@6 compare_expr ')' stat
 
-   59 declaration: VAR ID type
-   60            | VAR ID type ASSIGN initializer
+   36 For_block: ID DEC stat
+   37          | ID INC stat
+   38          | for_assign stat
 
-   61 type: INT
-   62     | FLOAT
-   63     | VOID
+   39 for_assign: ID ASSIGN arith
+   40           | ID ADD_ASSIGN arith
+   41           | ID SUB_ASSIGN arith
+   42           | ID MUL_ASSIGN arith
+   43           | ID DIV_ASSIGN arith
 
-   64 initializer: arith
+   44 arith: arith ADD arith
+   45      | arith SUB arith
+   46      | arith MUL arith
+   47      | arith DIV arith
+   48      | arith MOD arith
+   49      | ID INC
+   50      | ID DEC
+   51      | SUB arith
+   52      | '(' arith ')'
+   53      | ID
+   54      | I_CONST
+   55      | F_CONST
+   56      | call_function
 
-   65 print_func: PRINT '(' STRING ')'
-   66           | PRINTLN '(' STRING ')'
-   67           | PRINT '(' arith ')'
-   68           | PRINTLN '(' arith ')'
+   57 call_function: ID '(' argument_list ')'
+
+   58 argument_list: argument_list COM arith
+   59              | arith
+   60              | %empty
+
+   61 compare_expr: arith GT arith
+   62             | arith LT arith
+   63             | arith GE arith
+   64             | arith LE arith
+   65             | arith EQ arith
+   66             | arith NE arith
+
+   67 assign_expr: ID ASSIGN arith
+   68            | ID ADD_ASSIGN arith
+   69            | ID SUB_ASSIGN arith
+   70            | ID MUL_ASSIGN arith
+   71            | ID DIV_ASSIGN arith
+   72            | ID MOD_ASSIGN arith
+
+   73 declaration: VAR ID type
+   74            | VAR ID type ASSIGN initializer
+
+   75 type: INT
+   76     | FLOAT
+   77     | VOID
+
+   78 initializer: arith
+
+   79 print_func: PRINT '(' STRING ')'
+   80           | PRINTLN '(' STRING ')'
+   81           | PRINT '(' arith ')'
+   82           | PRINTLN '(' arith ')'
 
 
 終結語詞，附有它們出現處的規則
 
 $end (0) 0
-'(' (40) 16 26 43 65 66 67 68
-')' (41) 16 26 43 65 66 67 68
-'{' (123) 5
-'}' (125) 5
+'(' (40) 16 25 35 52 57 79 80 81 82
+')' (41) 16 25 35 52 57 79 80 81 82
+'{' (123) 5 16
+'}' (125) 5 16
 error (256)
-PRINT (258) 65 67
-PRINTLN (259) 66 68
-IF (260) 16
-ELSE (261) 18
-FOR (262) 24 26
-VAR (263) 59 60
-NEWLINE (264) 10 19
-ADD (265) 35
-SUB (266) 36 42
-MUL (267) 37
-DIV (268) 38
-MOD (269) 39
-GT (270) 47
+PRINT (258) 79 81
+PRINTLN (259) 80 82
+IF (260) 25
+ELSE (261) 27
+FOR (262) 33 35
+VAR (263) 73 74
+NEWLINE (264) 10 28
+ADD (265) 44
+SUB (266) 45 51
+MUL (267) 46
+DIV (268) 47
+MOD (269) 48
+GT (270) 61
 LTGE (271)
-LE (272) 50
-EQ (273) 51
-NE (274) 52
-INC (275) 28 40
-DEC (276) 27 41
-LT (277) 48
-GE (278) 49
-ASSIGN (279) 30 53 60
-ADD_ASSIGN (280) 31 54
-SUB_ASSIGN (281) 32 55
-MUL_ASSIGN (282) 33 56
-DIV_ASSIGN (283) 34 57
-MOD_ASSIGN (284) 58
+LE (272) 64
+EQ (273) 65
+NE (274) 66
+INC (275) 37 49
+DEC (276) 36 50
+LT (277) 62
+GE (278) 63
+ASSIGN (279) 39 67 74
+ADD_ASSIGN (280) 40 68
+SUB_ASSIGN (281) 41 69
+MUL_ASSIGN (282) 42 70
+DIV_ASSIGN (283) 43 71
+MOD_ASSIGN (284) 72
 AND (285)
 OR (286)
 NOT (287)
 LB2 (288)
 RB2 (289)
 C_COMMENT (290) 14
-SEM (291) 24
-FUNC (292)
-I_CONST (293) 45
-F_CONST (294) 46
-STRING (295) 65 66
-INT (296) 61
-FLOAT (297) 62
-VOID (298) 63
-ID (299) 27 28 30 31 32 33 34 40 41 44 53 54 55 56 57 58 59 60
-UMINUS (300)
+SEM (291) 33
+FUNC (292) 16
+COM (293) 22 58
+I_CONST (294) 54
+F_CONST (295) 55
+STRING (296) 79 80
+INT (297) 17 75
+FLOAT (298) 18 76
+VOID (299) 19 77
+ID (300) 16 21 22 36 37 39 40 41 42 43 49 50 53 57 67 68 69 70 71 72
+    73 74
+UMINUS (301)
 
 
 非終結語詞，附有它們出現處的規則
 
-$accept (50)
+$accept (51)
     於左側： 0
-program (51)
+program (52)
     於左側： 1 2, 於右側： 0 1
-stat (52)
-    於左側： 5 6 7 8 9 10 11 12 13 14, 於右側： 1 16 18 21
-    22 26 27 28 29
-$@1 (53)
+stat (53)
+    於左側： 5 6 7 8 9 10 11 12 13 14 15, 於右側： 1 25 27
+    30 31 35 36 37 38
+$@1 (54)
     於左側： 3, 於右側： 5
-$@2 (54)
+$@2 (55)
     於左側： 4, 於右側： 5
-if_block (55)
-    於左側： 16, 於右側： 8
-$@3 (56)
-    於左側： 15, 於右側： 16
-ELSE_block (57)
-    於左側： 18 19 20, 於右側： 16
-$@4 (58)
-    於左側： 17, 於右側： 18
-block_item_list (59)
-    於左側： 21 22, 於右側： 5 22
-for_loop (60)
-    於左側： 24 26, 於右側： 6
-$@5 (61)
-    於左側： 23, 於右側： 24
-$@6 (62)
-    於左側： 25, 於右側： 26
-For_block (63)
-    於左側： 27 28 29, 於右側： 24
-for_assign (64)
-    於左側： 30 31 32 33 34, 於右側： 29
-arith (65)
-    於左側： 35 36 37 38 39 40 41 42 43 44 45 46, 於右側：
-    13 30 31 32 33 34 35 36 37 38 39 42 43 47 48 49 50 51 52 53 54
-    55 56 57 58 64 67 68
-compare_expr (66)
-    於左側： 47 48 49 50 51 52, 於右側： 12 16 24 26
-assign_expr (67)
-    於左側： 53 54 55 56 57 58, 於右側： 11 24
-declaration (68)
-    於左側： 59 60, 於右側： 7
-type (69)
-    於左側： 61 62 63, 於右側： 59 60
-initializer (70)
-    於左側： 64, 於右側： 60
-print_func (71)
-    於左側： 65 66 67 68, 於右側： 9
+function (56)
+    於左側： 16, 於右側： 15
+funct_type (57)
+    於左側： 17 18 19 20, 於右側： 16
+parameter_list (58)
+    於左側： 21 22 23, 於右側： 16 22
+if_block (59)
+    於左側： 25, 於右側： 8
+$@3 (60)
+    於左側： 24, 於右側： 25
+ELSE_block (61)
+    於左側： 27 28 29, 於右側： 25
+$@4 (62)
+    於左側： 26, 於右側： 27
+block_item_list (63)
+    於左側： 30 31, 於右側： 5 16 31
+for_loop (64)
+    於左側： 33 35, 於右側： 6
+$@5 (65)
+    於左側： 32, 於右側： 33
+$@6 (66)
+    於左側： 34, 於右側： 35
+For_block (67)
+    於左側： 36 37 38, 於右側： 33
+for_assign (68)
+    於左側： 39 40 41 42 43, 於右側： 38
+arith (69)
+    於左側： 44 45 46 47 48 49 50 51 52 53 54 55 56, 於右側：
+    13 39 40 41 42 43 44 45 46 47 48 51 52 58 59 61 62 63 64 65 66
+    67 68 69 70 71 72 78 81 82
+call_function (70)
+    於左側： 57, 於右側： 56
+argument_list (71)
+    於左側： 58 59 60, 於右側： 57 58
+compare_expr (72)
+    於左側： 61 62 63 64 65 66, 於右側： 12 25 33 35
+assign_expr (73)
+    於左側： 67 68 69 70 71 72, 於右側： 11 33
+declaration (74)
+    於左側： 73 74, 於右側： 7
+type (75)
+    於左側： 75 76 77, 於右側： 21 22 73 74
+initializer (76)
+    於左側： 78, 於右側： 74
+print_func (77)
+    於左側： 79 80 81 82, 於右側： 9
 
 
 狀態 0
@@ -249,18 +281,21 @@ print_func (71)
     '('        偏移，並進入狀態 10
     '{'        偏移，並進入狀態 11
     C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
 
-    stat          進入狀態 16
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
+    stat           進入狀態 17
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
 
 
 狀態 2
@@ -272,46 +307,46 @@ print_func (71)
 
 狀態 3
 
-   65 print_func: PRINT . '(' STRING ')'
-   67           | PRINT . '(' arith ')'
+   79 print_func: PRINT . '(' STRING ')'
+   81           | PRINT . '(' arith ')'
 
-    '('  偏移，並進入狀態 24
+    '('  偏移，並進入狀態 27
 
 
 狀態 4
 
-   66 print_func: PRINTLN . '(' STRING ')'
-   68           | PRINTLN . '(' arith ')'
+   80 print_func: PRINTLN . '(' STRING ')'
+   82           | PRINTLN . '(' arith ')'
 
-    '('  偏移，並進入狀態 25
+    '('  偏移，並進入狀態 28
 
 
 狀態 5
 
-   16 if_block: IF . $@3 '(' compare_expr ')' stat ELSE_block
+   25 if_block: IF . $@3 '(' compare_expr ')' stat ELSE_block
 
-    $預設  使用規則 15 以縮減 ($@3)
+    $預設  使用規則 24 以縮減 ($@3)
 
-    $@3  進入狀態 26
+    $@3  進入狀態 29
 
 
 狀態 6
 
-   24 for_loop: FOR . assign_expr SEM $@5 compare_expr SEM For_block
-   26         | FOR . '(' $@6 compare_expr ')' stat
+   33 for_loop: FOR . assign_expr SEM $@5 compare_expr SEM For_block
+   35         | FOR . '(' $@6 compare_expr ')' stat
 
-    '('  偏移，並進入狀態 27
-    ID   偏移，並進入狀態 28
+    '('  偏移，並進入狀態 30
+    ID   偏移，並進入狀態 31
 
-    assign_expr  進入狀態 29
+    assign_expr  進入狀態 32
 
 
 狀態 7
 
-   59 declaration: VAR . ID type
-   60            | VAR . ID type ASSIGN initializer
+   73 declaration: VAR . ID type
+   74            | VAR . ID type ASSIGN initializer
 
-    ID  偏移，並進入狀態 30
+    ID  偏移，並進入狀態 33
 
 
 狀態 8
@@ -323,28 +358,30 @@ print_func (71)
 
 狀態 9
 
-   42 arith: SUB . arith
+   51 arith: SUB . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 32
+    arith          進入狀態 35
+    call_function  進入狀態 22
 
 
 狀態 10
 
-   43 arith: '(' . arith ')'
+   52 arith: '(' . arith ')'
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 33
+    arith          進入狀態 36
+    call_function  進入狀態 22
 
 
 狀態 11
@@ -353,7 +390,7 @@ print_func (71)
 
     $預設  使用規則 3 以縮減 ($@1)
 
-    $@1  進入狀態 34
+    $@1  進入狀態 37
 
 
 狀態 12
@@ -365,246 +402,275 @@ print_func (71)
 
 狀態 13
 
-   45 arith: I_CONST .
+   16 function: FUNC . ID '(' parameter_list ')' funct_type '{' block_item_list '}'
 
-    $預設  使用規則 45 以縮減 (arith)
+    ID  偏移，並進入狀態 38
 
 
 狀態 14
 
-   46 arith: F_CONST .
+   54 arith: I_CONST .
 
-    $預設  使用規則 46 以縮減 (arith)
+    $預設  使用規則 54 以縮減 (arith)
 
 
 狀態 15
 
-   40 arith: ID . INC
-   41      | ID . DEC
-   44      | ID .
-   53 assign_expr: ID . ASSIGN arith
-   54            | ID . ADD_ASSIGN arith
-   55            | ID . SUB_ASSIGN arith
-   56            | ID . MUL_ASSIGN arith
-   57            | ID . DIV_ASSIGN arith
-   58            | ID . MOD_ASSIGN arith
+   55 arith: F_CONST .
 
-    INC         偏移，並進入狀態 35
-    DEC         偏移，並進入狀態 36
-    ASSIGN      偏移，並進入狀態 37
-    ADD_ASSIGN  偏移，並進入狀態 38
-    SUB_ASSIGN  偏移，並進入狀態 39
-    MUL_ASSIGN  偏移，並進入狀態 40
-    DIV_ASSIGN  偏移，並進入狀態 41
-    MOD_ASSIGN  偏移，並進入狀態 42
-
-    $預設  使用規則 44 以縮減 (arith)
+    $預設  使用規則 55 以縮減 (arith)
 
 
 狀態 16
+
+   49 arith: ID . INC
+   50      | ID . DEC
+   53      | ID .
+   57 call_function: ID . '(' argument_list ')'
+   67 assign_expr: ID . ASSIGN arith
+   68            | ID . ADD_ASSIGN arith
+   69            | ID . SUB_ASSIGN arith
+   70            | ID . MUL_ASSIGN arith
+   71            | ID . DIV_ASSIGN arith
+   72            | ID . MOD_ASSIGN arith
+
+    '('         偏移，並進入狀態 39
+    INC         偏移，並進入狀態 40
+    DEC         偏移，並進入狀態 41
+    ASSIGN      偏移，並進入狀態 42
+    ADD_ASSIGN  偏移，並進入狀態 43
+    SUB_ASSIGN  偏移，並進入狀態 44
+    MUL_ASSIGN  偏移，並進入狀態 45
+    DIV_ASSIGN  偏移，並進入狀態 46
+    MOD_ASSIGN  偏移，並進入狀態 47
+
+    '('      [使用規則 53 以縮減 (arith)]
+    $預設  使用規則 53 以縮減 (arith)
+
+
+狀態 17
 
     1 program: program stat .
 
     $預設  使用規則 1 以縮減 (program)
 
 
-狀態 17
+狀態 18
+
+   15 stat: function .
+
+    $預設  使用規則 15 以縮減 (stat)
+
+
+狀態 19
 
     8 stat: if_block .
 
     $預設  使用規則 8 以縮減 (stat)
 
 
-狀態 18
+狀態 20
 
     6 stat: for_loop .
 
     $預設  使用規則 6 以縮減 (stat)
 
 
-狀態 19
+狀態 21
 
    13 stat: arith .
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   47 compare_expr: arith . GT arith
-   48             | arith . LT arith
-   49             | arith . GE arith
-   50             | arith . LE arith
-   51             | arith . EQ arith
-   52             | arith . NE arith
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   61 compare_expr: arith . GT arith
+   62             | arith . LT arith
+   63             | arith . GE arith
+   64             | arith . LE arith
+   65             | arith . EQ arith
+   66             | arith . NE arith
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-    GT   偏移，並進入狀態 48
-    LE   偏移，並進入狀態 49
-    EQ   偏移，並進入狀態 50
-    NE   偏移，並進入狀態 51
-    LT   偏移，並進入狀態 52
-    GE   偏移，並進入狀態 53
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+    GT   偏移，並進入狀態 53
+    LE   偏移，並進入狀態 54
+    EQ   偏移，並進入狀態 55
+    NE   偏移，並進入狀態 56
+    LT   偏移，並進入狀態 57
+    GE   偏移，並進入狀態 58
 
     SUB      [使用規則 13 以縮減 (stat)]
     $預設  使用規則 13 以縮減 (stat)
 
 
-狀態 20
+狀態 22
+
+   56 arith: call_function .
+
+    $預設  使用規則 56 以縮減 (arith)
+
+
+狀態 23
 
    12 stat: compare_expr .
 
     $預設  使用規則 12 以縮減 (stat)
 
 
-狀態 21
+狀態 24
 
    11 stat: assign_expr .
 
     $預設  使用規則 11 以縮減 (stat)
 
 
-狀態 22
+狀態 25
 
     7 stat: declaration .
 
     $預設  使用規則 7 以縮減 (stat)
 
 
-狀態 23
+狀態 26
 
     9 stat: print_func .
 
     $預設  使用規則 9 以縮減 (stat)
 
 
-狀態 24
-
-   65 print_func: PRINT '(' . STRING ')'
-   67           | PRINT '(' . arith ')'
-
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    STRING   偏移，並進入狀態 54
-    ID       偏移，並進入狀態 31
-
-    arith  進入狀態 55
-
-
-狀態 25
-
-   66 print_func: PRINTLN '(' . STRING ')'
-   68           | PRINTLN '(' . arith ')'
-
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    STRING   偏移，並進入狀態 56
-    ID       偏移，並進入狀態 31
-
-    arith  進入狀態 57
-
-
-狀態 26
-
-   16 if_block: IF $@3 . '(' compare_expr ')' stat ELSE_block
-
-    '('  偏移，並進入狀態 58
-
-
 狀態 27
 
-   26 for_loop: FOR '(' . $@6 compare_expr ')' stat
+   79 print_func: PRINT '(' . STRING ')'
+   81           | PRINT '(' . arith ')'
 
-    $預設  使用規則 25 以縮減 ($@6)
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    STRING   偏移，並進入狀態 59
+    ID       偏移，並進入狀態 34
 
-    $@6  進入狀態 59
+    arith          進入狀態 60
+    call_function  進入狀態 22
 
 
 狀態 28
 
-   53 assign_expr: ID . ASSIGN arith
-   54            | ID . ADD_ASSIGN arith
-   55            | ID . SUB_ASSIGN arith
-   56            | ID . MUL_ASSIGN arith
-   57            | ID . DIV_ASSIGN arith
-   58            | ID . MOD_ASSIGN arith
+   80 print_func: PRINTLN '(' . STRING ')'
+   82           | PRINTLN '(' . arith ')'
 
-    ASSIGN      偏移，並進入狀態 37
-    ADD_ASSIGN  偏移，並進入狀態 38
-    SUB_ASSIGN  偏移，並進入狀態 39
-    MUL_ASSIGN  偏移，並進入狀態 40
-    DIV_ASSIGN  偏移，並進入狀態 41
-    MOD_ASSIGN  偏移，並進入狀態 42
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    STRING   偏移，並進入狀態 61
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 62
+    call_function  進入狀態 22
 
 
 狀態 29
 
-   24 for_loop: FOR assign_expr . SEM $@5 compare_expr SEM For_block
+   25 if_block: IF $@3 . '(' compare_expr ')' stat ELSE_block
 
-    SEM  偏移，並進入狀態 60
+    '('  偏移，並進入狀態 63
 
 
 狀態 30
 
-   59 declaration: VAR ID . type
-   60            | VAR ID . type ASSIGN initializer
+   35 for_loop: FOR '(' . $@6 compare_expr ')' stat
 
-    INT    偏移，並進入狀態 61
-    FLOAT  偏移，並進入狀態 62
-    VOID   偏移，並進入狀態 63
+    $預設  使用規則 34 以縮減 ($@6)
 
-    type  進入狀態 64
+    $@6  進入狀態 64
 
 
 狀態 31
 
-   40 arith: ID . INC
-   41      | ID . DEC
-   44      | ID .
+   67 assign_expr: ID . ASSIGN arith
+   68            | ID . ADD_ASSIGN arith
+   69            | ID . SUB_ASSIGN arith
+   70            | ID . MUL_ASSIGN arith
+   71            | ID . DIV_ASSIGN arith
+   72            | ID . MOD_ASSIGN arith
 
-    INC  偏移，並進入狀態 35
-    DEC  偏移，並進入狀態 36
-
-    $預設  使用規則 44 以縮減 (arith)
+    ASSIGN      偏移，並進入狀態 42
+    ADD_ASSIGN  偏移，並進入狀態 43
+    SUB_ASSIGN  偏移，並進入狀態 44
+    MUL_ASSIGN  偏移，並進入狀態 45
+    DIV_ASSIGN  偏移，並進入狀態 46
+    MOD_ASSIGN  偏移，並進入狀態 47
 
 
 狀態 32
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   42      | SUB arith .
+   33 for_loop: FOR assign_expr . SEM $@5 compare_expr SEM For_block
 
-    $預設  使用規則 42 以縮減 (arith)
+    SEM  偏移，並進入狀態 65
 
 
 狀態 33
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   43      | '(' arith . ')'
+   73 declaration: VAR ID . type
+   74            | VAR ID . type ASSIGN initializer
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-    ')'  偏移，並進入狀態 65
+    INT    偏移，並進入狀態 66
+    FLOAT  偏移，並進入狀態 67
+    VOID   偏移，並進入狀態 68
+
+    type  進入狀態 69
 
 
 狀態 34
+
+   49 arith: ID . INC
+   50      | ID . DEC
+   53      | ID .
+   57 call_function: ID . '(' argument_list ')'
+
+    '('  偏移，並進入狀態 39
+    INC  偏移，並進入狀態 40
+    DEC  偏移，並進入狀態 41
+
+    '('      [使用規則 53 以縮減 (arith)]
+    $預設  使用規則 53 以縮減 (arith)
+
+
+狀態 35
+
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   51      | SUB arith .
+
+    $預設  使用規則 51 以縮減 (arith)
+
+
+狀態 36
+
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   52      | '(' arith . ')'
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+    ')'  偏移，並進入狀態 70
+
+
+狀態 37
 
     5 stat: '{' $@1 . block_item_list $@2 '}'
 
@@ -618,851 +684,952 @@ print_func (71)
     '('        偏移，並進入狀態 10
     '{'        偏移，並進入狀態 11
     C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
 
-    stat             進入狀態 66
-    if_block         進入狀態 17
-    block_item_list  進入狀態 67
-    for_loop         進入狀態 18
-    arith            進入狀態 19
-    compare_expr     進入狀態 20
-    assign_expr      進入狀態 21
-    declaration      進入狀態 22
-    print_func       進入狀態 23
-
-
-狀態 35
-
-   40 arith: ID INC .
-
-    $預設  使用規則 40 以縮減 (arith)
-
-
-狀態 36
-
-   41 arith: ID DEC .
-
-    $預設  使用規則 41 以縮減 (arith)
-
-
-狀態 37
-
-   53 assign_expr: ID ASSIGN . arith
-
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
-
-    arith  進入狀態 68
+    stat             進入狀態 71
+    function         進入狀態 18
+    if_block         進入狀態 19
+    block_item_list  進入狀態 72
+    for_loop         進入狀態 20
+    arith            進入狀態 21
+    call_function    進入狀態 22
+    compare_expr     進入狀態 23
+    assign_expr      進入狀態 24
+    declaration      進入狀態 25
+    print_func       進入狀態 26
 
 
 狀態 38
 
-   54 assign_expr: ID ADD_ASSIGN . arith
+   16 function: FUNC ID . '(' parameter_list ')' funct_type '{' block_item_list '}'
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
-
-    arith  進入狀態 69
+    '('  偏移，並進入狀態 73
 
 
 狀態 39
 
-   55 assign_expr: ID SUB_ASSIGN . arith
+   57 call_function: ID '(' . argument_list ')'
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 70
+    $預設  使用規則 60 以縮減 (argument_list)
+
+    arith          進入狀態 74
+    call_function  進入狀態 22
+    argument_list  進入狀態 75
 
 
 狀態 40
 
-   56 assign_expr: ID MUL_ASSIGN . arith
+   49 arith: ID INC .
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
-
-    arith  進入狀態 71
+    $預設  使用規則 49 以縮減 (arith)
 
 
 狀態 41
 
-   57 assign_expr: ID DIV_ASSIGN . arith
+   50 arith: ID DEC .
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
-
-    arith  進入狀態 72
+    $預設  使用規則 50 以縮減 (arith)
 
 
 狀態 42
 
-   58 assign_expr: ID MOD_ASSIGN . arith
+   67 assign_expr: ID ASSIGN . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 73
+    arith          進入狀態 76
+    call_function  進入狀態 22
 
 
 狀態 43
 
-   35 arith: arith ADD . arith
+   68 assign_expr: ID ADD_ASSIGN . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 74
+    arith          進入狀態 77
+    call_function  進入狀態 22
 
 
 狀態 44
 
-   36 arith: arith SUB . arith
+   69 assign_expr: ID SUB_ASSIGN . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 75
+    arith          進入狀態 78
+    call_function  進入狀態 22
 
 
 狀態 45
 
-   37 arith: arith MUL . arith
+   70 assign_expr: ID MUL_ASSIGN . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 76
+    arith          進入狀態 79
+    call_function  進入狀態 22
 
 
 狀態 46
 
-   38 arith: arith DIV . arith
+   71 assign_expr: ID DIV_ASSIGN . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 77
+    arith          進入狀態 80
+    call_function  進入狀態 22
 
 
 狀態 47
 
-   39 arith: arith MOD . arith
+   72 assign_expr: ID MOD_ASSIGN . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 78
+    arith          進入狀態 81
+    call_function  進入狀態 22
 
 
 狀態 48
 
-   47 compare_expr: arith GT . arith
+   44 arith: arith ADD . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 79
+    arith          進入狀態 82
+    call_function  進入狀態 22
 
 
 狀態 49
 
-   50 compare_expr: arith LE . arith
+   45 arith: arith SUB . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 80
+    arith          進入狀態 83
+    call_function  進入狀態 22
 
 
 狀態 50
 
-   51 compare_expr: arith EQ . arith
+   46 arith: arith MUL . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 81
+    arith          進入狀態 84
+    call_function  進入狀態 22
 
 
 狀態 51
 
-   52 compare_expr: arith NE . arith
+   47 arith: arith DIV . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 82
+    arith          進入狀態 85
+    call_function  進入狀態 22
 
 
 狀態 52
 
-   48 compare_expr: arith LT . arith
+   48 arith: arith MOD . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 83
+    arith          進入狀態 86
+    call_function  進入狀態 22
 
 
 狀態 53
 
-   49 compare_expr: arith GE . arith
+   61 compare_expr: arith GT . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith  進入狀態 84
+    arith          進入狀態 87
+    call_function  進入狀態 22
 
 
 狀態 54
 
-   65 print_func: PRINT '(' STRING . ')'
+   64 compare_expr: arith LE . arith
 
-    ')'  偏移，並進入狀態 85
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 88
+    call_function  進入狀態 22
 
 
 狀態 55
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   67 print_func: PRINT '(' arith . ')'
+   65 compare_expr: arith EQ . arith
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-    ')'  偏移，並進入狀態 86
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 89
+    call_function  進入狀態 22
 
 
 狀態 56
 
-   66 print_func: PRINTLN '(' STRING . ')'
+   66 compare_expr: arith NE . arith
 
-    ')'  偏移，並進入狀態 87
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 90
+    call_function  進入狀態 22
 
 
 狀態 57
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   68 print_func: PRINTLN '(' arith . ')'
+   62 compare_expr: arith LT . arith
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-    ')'  偏移，並進入狀態 88
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 91
+    call_function  進入狀態 22
 
 
 狀態 58
 
-   16 if_block: IF $@3 '(' . compare_expr ')' stat ELSE_block
+   63 compare_expr: arith GE . arith
 
     SUB      偏移，並進入狀態 9
     '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    arith         進入狀態 89
-    compare_expr  進入狀態 90
+    arith          進入狀態 92
+    call_function  進入狀態 22
 
 
 狀態 59
 
-   26 for_loop: FOR '(' $@6 . compare_expr ')' stat
+   79 print_func: PRINT '(' STRING . ')'
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
-
-    arith         進入狀態 89
-    compare_expr  進入狀態 91
+    ')'  偏移，並進入狀態 93
 
 
 狀態 60
 
-   24 for_loop: FOR assign_expr SEM . $@5 compare_expr SEM For_block
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   81 print_func: PRINT '(' arith . ')'
 
-    $預設  使用規則 23 以縮減 ($@5)
-
-    $@5  進入狀態 92
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+    ')'  偏移，並進入狀態 94
 
 
 狀態 61
 
-   61 type: INT .
+   80 print_func: PRINTLN '(' STRING . ')'
 
-    $預設  使用規則 61 以縮減 (type)
+    ')'  偏移，並進入狀態 95
 
 
 狀態 62
 
-   62 type: FLOAT .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   82 print_func: PRINTLN '(' arith . ')'
 
-    $預設  使用規則 62 以縮減 (type)
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+    ')'  偏移，並進入狀態 96
 
 
 狀態 63
 
-   63 type: VOID .
+   25 if_block: IF $@3 '(' . compare_expr ')' stat ELSE_block
 
-    $預設  使用規則 63 以縮減 (type)
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 97
+    call_function  進入狀態 22
+    compare_expr   進入狀態 98
 
 
 狀態 64
 
-   59 declaration: VAR ID type .
-   60            | VAR ID type . ASSIGN initializer
+   35 for_loop: FOR '(' $@6 . compare_expr ')' stat
 
-    ASSIGN  偏移，並進入狀態 93
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
 
-    $預設  使用規則 59 以縮減 (declaration)
+    arith          進入狀態 97
+    call_function  進入狀態 22
+    compare_expr   進入狀態 99
 
 
 狀態 65
 
-   43 arith: '(' arith ')' .
+   33 for_loop: FOR assign_expr SEM . $@5 compare_expr SEM For_block
 
-    $預設  使用規則 43 以縮減 (arith)
+    $預設  使用規則 32 以縮減 ($@5)
+
+    $@5  進入狀態 100
 
 
 狀態 66
 
-   21 block_item_list: stat .
+   75 type: INT .
 
-    $預設  使用規則 21 以縮減 (block_item_list)
+    $預設  使用規則 75 以縮減 (type)
 
 
 狀態 67
 
-    5 stat: '{' $@1 block_item_list . $@2 '}'
-   22 block_item_list: block_item_list . stat
+   76 type: FLOAT .
 
-    PRINT      偏移，並進入狀態 3
-    PRINTLN    偏移，並進入狀態 4
-    IF         偏移，並進入狀態 5
-    FOR        偏移，並進入狀態 6
-    VAR        偏移，並進入狀態 7
-    NEWLINE    偏移，並進入狀態 8
-    SUB        偏移，並進入狀態 9
-    '('        偏移，並進入狀態 10
-    '{'        偏移，並進入狀態 11
-    C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
-
-    $預設  使用規則 4 以縮減 ($@2)
-
-    stat          進入狀態 94
-    $@2           進入狀態 95
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
+    $預設  使用規則 76 以縮減 (type)
 
 
 狀態 68
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   53 assign_expr: ID ASSIGN arith .
+   77 type: VOID .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    $預設  使用規則 53 以縮減 (assign_expr)
+    $預設  使用規則 77 以縮減 (type)
 
 
 狀態 69
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   54 assign_expr: ID ADD_ASSIGN arith .
+   73 declaration: VAR ID type .
+   74            | VAR ID type . ASSIGN initializer
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    ASSIGN  偏移，並進入狀態 101
 
-    SUB      [使用規則 54 以縮減 (assign_expr)]
-    $預設  使用規則 54 以縮減 (assign_expr)
+    $預設  使用規則 73 以縮減 (declaration)
 
 
 狀態 70
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   55 assign_expr: ID SUB_ASSIGN arith .
+   52 arith: '(' arith ')' .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    SUB      [使用規則 55 以縮減 (assign_expr)]
-    $預設  使用規則 55 以縮減 (assign_expr)
+    $預設  使用規則 52 以縮減 (arith)
 
 
 狀態 71
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   56 assign_expr: ID MUL_ASSIGN arith .
+   30 block_item_list: stat .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    SUB      [使用規則 56 以縮減 (assign_expr)]
-    $預設  使用規則 56 以縮減 (assign_expr)
+    $預設  使用規則 30 以縮減 (block_item_list)
 
 
 狀態 72
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   57 assign_expr: ID DIV_ASSIGN arith .
+    5 stat: '{' $@1 block_item_list . $@2 '}'
+   31 block_item_list: block_item_list . stat
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
 
-    SUB      [使用規則 57 以縮減 (assign_expr)]
-    $預設  使用規則 57 以縮減 (assign_expr)
+    $預設  使用規則 4 以縮減 ($@2)
+
+    stat           進入狀態 102
+    $@2            進入狀態 103
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
 
 
 狀態 73
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   58 assign_expr: ID MOD_ASSIGN arith .
+   16 function: FUNC ID '(' . parameter_list ')' funct_type '{' block_item_list '}'
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    ID  偏移，並進入狀態 104
 
-    SUB      [使用規則 58 以縮減 (assign_expr)]
-    $預設  使用規則 58 以縮減 (assign_expr)
+    $預設  使用規則 23 以縮減 (parameter_list)
+
+    parameter_list  進入狀態 105
 
 
 狀態 74
 
-   35 arith: arith . ADD arith
-   35      | arith ADD arith .
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   59 argument_list: arith .
 
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    $預設  使用規則 35 以縮減 (arith)
+    $預設  使用規則 59 以縮減 (argument_list)
 
 
 狀態 75
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   36      | arith SUB arith .
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   57 call_function: ID '(' argument_list . ')'
+   58 argument_list: argument_list . COM arith
 
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    $預設  使用規則 36 以縮減 (arith)
+    ')'  偏移，並進入狀態 106
+    COM  偏移，並進入狀態 107
 
 
 狀態 76
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   37      | arith MUL arith .
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   67 assign_expr: ID ASSIGN arith .
 
-    $預設  使用規則 37 以縮減 (arith)
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    $預設  使用規則 67 以縮減 (assign_expr)
 
 
 狀態 77
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   38      | arith DIV arith .
-   39      | arith . MOD arith
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   68 assign_expr: ID ADD_ASSIGN arith .
 
-    $預設  使用規則 38 以縮減 (arith)
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 68 以縮減 (assign_expr)]
+    $預設  使用規則 68 以縮減 (assign_expr)
 
 
 狀態 78
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   39      | arith MOD arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   69 assign_expr: ID SUB_ASSIGN arith .
 
-    $預設  使用規則 39 以縮減 (arith)
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 69 以縮減 (assign_expr)]
+    $預設  使用規則 69 以縮減 (assign_expr)
 
 
 狀態 79
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   47 compare_expr: arith GT arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   70 assign_expr: ID MUL_ASSIGN arith .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    $預設  使用規則 47 以縮減 (compare_expr)
+    SUB      [使用規則 70 以縮減 (assign_expr)]
+    $預設  使用規則 70 以縮減 (assign_expr)
 
 
 狀態 80
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   50 compare_expr: arith LE arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   71 assign_expr: ID DIV_ASSIGN arith .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    $預設  使用規則 50 以縮減 (compare_expr)
+    SUB      [使用規則 71 以縮減 (assign_expr)]
+    $預設  使用規則 71 以縮減 (assign_expr)
 
 
 狀態 81
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   51 compare_expr: arith EQ arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   72 assign_expr: ID MOD_ASSIGN arith .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    $預設  使用規則 51 以縮減 (compare_expr)
+    SUB      [使用規則 72 以縮減 (assign_expr)]
+    $預設  使用規則 72 以縮減 (assign_expr)
 
 
 狀態 82
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   52 compare_expr: arith NE arith .
+   44 arith: arith . ADD arith
+   44      | arith ADD arith .
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    $預設  使用規則 52 以縮減 (compare_expr)
+    $預設  使用規則 44 以縮減 (arith)
 
 
 狀態 83
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   48 compare_expr: arith LT arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   45      | arith SUB arith .
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    SUB      [使用規則 48 以縮減 (compare_expr)]
-    $預設  使用規則 48 以縮減 (compare_expr)
+    $預設  使用規則 45 以縮減 (arith)
 
 
 狀態 84
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   49 compare_expr: arith GE arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   46      | arith MUL arith .
+   47      | arith . DIV arith
+   48      | arith . MOD arith
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    SUB      [使用規則 49 以縮減 (compare_expr)]
-    $預設  使用規則 49 以縮減 (compare_expr)
+    $預設  使用規則 46 以縮減 (arith)
 
 
 狀態 85
 
-   65 print_func: PRINT '(' STRING ')' .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   47      | arith DIV arith .
+   48      | arith . MOD arith
 
-    $預設  使用規則 65 以縮減 (print_func)
+    $預設  使用規則 47 以縮減 (arith)
 
 
 狀態 86
 
-   67 print_func: PRINT '(' arith ')' .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   48      | arith MOD arith .
 
-    $預設  使用規則 67 以縮減 (print_func)
+    $預設  使用規則 48 以縮減 (arith)
 
 
 狀態 87
 
-   66 print_func: PRINTLN '(' STRING ')' .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   61 compare_expr: arith GT arith .
 
-    $預設  使用規則 66 以縮減 (print_func)
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    $預設  使用規則 61 以縮減 (compare_expr)
 
 
 狀態 88
 
-   68 print_func: PRINTLN '(' arith ')' .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   64 compare_expr: arith LE arith .
 
-    $預設  使用規則 68 以縮減 (print_func)
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    $預設  使用規則 64 以縮減 (compare_expr)
 
 
 狀態 89
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   47 compare_expr: arith . GT arith
-   48             | arith . LT arith
-   49             | arith . GE arith
-   50             | arith . LE arith
-   51             | arith . EQ arith
-   52             | arith . NE arith
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   65 compare_expr: arith EQ arith .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-    GT   偏移，並進入狀態 48
-    LE   偏移，並進入狀態 49
-    EQ   偏移，並進入狀態 50
-    NE   偏移，並進入狀態 51
-    LT   偏移，並進入狀態 52
-    GE   偏移，並進入狀態 53
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    $預設  使用規則 65 以縮減 (compare_expr)
 
 
 狀態 90
 
-   16 if_block: IF $@3 '(' compare_expr . ')' stat ELSE_block
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   66 compare_expr: arith NE arith .
 
-    ')'  偏移，並進入狀態 96
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    $預設  使用規則 66 以縮減 (compare_expr)
 
 
 狀態 91
 
-   26 for_loop: FOR '(' $@6 compare_expr . ')' stat
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   62 compare_expr: arith LT arith .
 
-    ')'  偏移，並進入狀態 97
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 62 以縮減 (compare_expr)]
+    $預設  使用規則 62 以縮減 (compare_expr)
 
 
 狀態 92
 
-   24 for_loop: FOR assign_expr SEM $@5 . compare_expr SEM For_block
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   63 compare_expr: arith GE arith .
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    arith         進入狀態 89
-    compare_expr  進入狀態 98
+    SUB      [使用規則 63 以縮減 (compare_expr)]
+    $預設  使用規則 63 以縮減 (compare_expr)
 
 
 狀態 93
 
-   60 declaration: VAR ID type ASSIGN . initializer
+   79 print_func: PRINT '(' STRING ')' .
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
-
-    arith        進入狀態 99
-    initializer  進入狀態 100
+    $預設  使用規則 79 以縮減 (print_func)
 
 
 狀態 94
 
-   22 block_item_list: block_item_list stat .
+   81 print_func: PRINT '(' arith ')' .
 
-    $預設  使用規則 22 以縮減 (block_item_list)
+    $預設  使用規則 81 以縮減 (print_func)
 
 
 狀態 95
 
-    5 stat: '{' $@1 block_item_list $@2 . '}'
+   80 print_func: PRINTLN '(' STRING ')' .
 
-    '}'  偏移，並進入狀態 101
+    $預設  使用規則 80 以縮減 (print_func)
 
 
 狀態 96
 
-   16 if_block: IF $@3 '(' compare_expr ')' . stat ELSE_block
+   82 print_func: PRINTLN '(' arith ')' .
 
-    PRINT      偏移，並進入狀態 3
-    PRINTLN    偏移，並進入狀態 4
-    IF         偏移，並進入狀態 5
-    FOR        偏移，並進入狀態 6
-    VAR        偏移，並進入狀態 7
-    NEWLINE    偏移，並進入狀態 8
-    SUB        偏移，並進入狀態 9
-    '('        偏移，並進入狀態 10
-    '{'        偏移，並進入狀態 11
-    C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
-
-    stat          進入狀態 102
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
+    $預設  使用規則 82 以縮減 (print_func)
 
 
 狀態 97
 
-   26 for_loop: FOR '(' $@6 compare_expr ')' . stat
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   61 compare_expr: arith . GT arith
+   62             | arith . LT arith
+   63             | arith . GE arith
+   64             | arith . LE arith
+   65             | arith . EQ arith
+   66             | arith . NE arith
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+    GT   偏移，並進入狀態 53
+    LE   偏移，並進入狀態 54
+    EQ   偏移，並進入狀態 55
+    NE   偏移，並進入狀態 56
+    LT   偏移，並進入狀態 57
+    GE   偏移，並進入狀態 58
+
+
+狀態 98
+
+   25 if_block: IF $@3 '(' compare_expr . ')' stat ELSE_block
+
+    ')'  偏移，並進入狀態 108
+
+
+狀態 99
+
+   35 for_loop: FOR '(' $@6 compare_expr . ')' stat
+
+    ')'  偏移，並進入狀態 109
+
+
+狀態 100
+
+   33 for_loop: FOR assign_expr SEM $@5 . compare_expr SEM For_block
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 97
+    call_function  進入狀態 22
+    compare_expr   進入狀態 110
+
+
+狀態 101
+
+   74 declaration: VAR ID type ASSIGN . initializer
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 111
+    call_function  進入狀態 22
+    initializer    進入狀態 112
+
+
+狀態 102
+
+   31 block_item_list: block_item_list stat .
+
+    $預設  使用規則 31 以縮減 (block_item_list)
+
+
+狀態 103
+
+    5 stat: '{' $@1 block_item_list $@2 . '}'
+
+    '}'  偏移，並進入狀態 113
+
+
+狀態 104
+
+   21 parameter_list: ID . type
+   22               | ID . type COM parameter_list
+
+    INT    偏移，並進入狀態 66
+    FLOAT  偏移，並進入狀態 67
+    VOID   偏移，並進入狀態 68
+
+    type  進入狀態 114
+
+
+狀態 105
+
+   16 function: FUNC ID '(' parameter_list . ')' funct_type '{' block_item_list '}'
+
+    ')'  偏移，並進入狀態 115
+
+
+狀態 106
+
+   57 call_function: ID '(' argument_list ')' .
+
+    $預設  使用規則 57 以縮減 (call_function)
+
+
+狀態 107
+
+   58 argument_list: argument_list COM . arith
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 116
+    call_function  進入狀態 22
+
+
+狀態 108
+
+   25 if_block: IF $@3 '(' compare_expr ')' . stat ELSE_block
 
     PRINT      偏移，並進入狀態 3
     PRINTLN    偏移，並進入狀態 4
@@ -1474,434 +1641,644 @@ print_func (71)
     '('        偏移，並進入狀態 10
     '{'        偏移，並進入狀態 11
     C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
 
-    stat          進入狀態 103
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
-
-
-狀態 98
-
-   24 for_loop: FOR assign_expr SEM $@5 compare_expr . SEM For_block
-
-    SEM  偏移，並進入狀態 104
+    stat           進入狀態 117
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
 
 
-狀態 99
+狀態 109
 
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
-   64 initializer: arith .
+   35 for_loop: FOR '(' $@6 compare_expr ')' . stat
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
 
-    SUB      [使用規則 64 以縮減 (initializer)]
-    $預設  使用規則 64 以縮減 (initializer)
+    stat           進入狀態 118
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
 
 
-狀態 100
+狀態 110
 
-   60 declaration: VAR ID type ASSIGN initializer .
+   33 for_loop: FOR assign_expr SEM $@5 compare_expr . SEM For_block
 
-    $預設  使用規則 60 以縮減 (declaration)
+    SEM  偏移，並進入狀態 119
 
 
-狀態 101
+狀態 111
+
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   78 initializer: arith .
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 78 以縮減 (initializer)]
+    $預設  使用規則 78 以縮減 (initializer)
+
+
+狀態 112
+
+   74 declaration: VAR ID type ASSIGN initializer .
+
+    $預設  使用規則 74 以縮減 (declaration)
+
+
+狀態 113
 
     5 stat: '{' $@1 block_item_list $@2 '}' .
 
     $預設  使用規則 5 以縮減 (stat)
 
 
-狀態 102
-
-   16 if_block: IF $@3 '(' compare_expr ')' stat . ELSE_block
-
-    ELSE     偏移，並進入狀態 105
-    NEWLINE  偏移，並進入狀態 106
-
-    ELSE     [使用規則 20 以縮減 (ELSE_block)]
-    NEWLINE  [使用規則 20 以縮減 (ELSE_block)]
-    $預設  使用規則 20 以縮減 (ELSE_block)
-
-    ELSE_block  進入狀態 107
-
-
-狀態 103
-
-   26 for_loop: FOR '(' $@6 compare_expr ')' stat .
-
-    $預設  使用規則 26 以縮減 (for_loop)
-
-
-狀態 104
-
-   24 for_loop: FOR assign_expr SEM $@5 compare_expr SEM . For_block
-
-    ID  偏移，並進入狀態 108
-
-    For_block   進入狀態 109
-    for_assign  進入狀態 110
-
-
-狀態 105
-
-   18 ELSE_block: ELSE . $@4 stat
-
-    $預設  使用規則 17 以縮減 ($@4)
-
-    $@4  進入狀態 111
-
-
-狀態 106
-
-   19 ELSE_block: NEWLINE .
-
-    $預設  使用規則 19 以縮減 (ELSE_block)
-
-
-狀態 107
-
-   16 if_block: IF $@3 '(' compare_expr ')' stat ELSE_block .
-
-    $預設  使用規則 16 以縮減 (if_block)
-
-
-狀態 108
-
-   27 For_block: ID . DEC stat
-   28          | ID . INC stat
-   30 for_assign: ID . ASSIGN arith
-   31           | ID . ADD_ASSIGN arith
-   32           | ID . SUB_ASSIGN arith
-   33           | ID . MUL_ASSIGN arith
-   34           | ID . DIV_ASSIGN arith
-
-    INC         偏移，並進入狀態 112
-    DEC         偏移，並進入狀態 113
-    ASSIGN      偏移，並進入狀態 114
-    ADD_ASSIGN  偏移，並進入狀態 115
-    SUB_ASSIGN  偏移，並進入狀態 116
-    MUL_ASSIGN  偏移，並進入狀態 117
-    DIV_ASSIGN  偏移，並進入狀態 118
-
-
-狀態 109
-
-   24 for_loop: FOR assign_expr SEM $@5 compare_expr SEM For_block .
-
-    $預設  使用規則 24 以縮減 (for_loop)
-
-
-狀態 110
-
-   29 For_block: for_assign . stat
-
-    PRINT      偏移，並進入狀態 3
-    PRINTLN    偏移，並進入狀態 4
-    IF         偏移，並進入狀態 5
-    FOR        偏移，並進入狀態 6
-    VAR        偏移，並進入狀態 7
-    NEWLINE    偏移，並進入狀態 8
-    SUB        偏移，並進入狀態 9
-    '('        偏移，並進入狀態 10
-    '{'        偏移，並進入狀態 11
-    C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
-
-    stat          進入狀態 119
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
-
-
-狀態 111
-
-   18 ELSE_block: ELSE $@4 . stat
-
-    PRINT      偏移，並進入狀態 3
-    PRINTLN    偏移，並進入狀態 4
-    IF         偏移，並進入狀態 5
-    FOR        偏移，並進入狀態 6
-    VAR        偏移，並進入狀態 7
-    NEWLINE    偏移，並進入狀態 8
-    SUB        偏移，並進入狀態 9
-    '('        偏移，並進入狀態 10
-    '{'        偏移，並進入狀態 11
-    C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
-
-    stat          進入狀態 120
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
-
-
-狀態 112
-
-   28 For_block: ID INC . stat
-
-    PRINT      偏移，並進入狀態 3
-    PRINTLN    偏移，並進入狀態 4
-    IF         偏移，並進入狀態 5
-    FOR        偏移，並進入狀態 6
-    VAR        偏移，並進入狀態 7
-    NEWLINE    偏移，並進入狀態 8
-    SUB        偏移，並進入狀態 9
-    '('        偏移，並進入狀態 10
-    '{'        偏移，並進入狀態 11
-    C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
-
-    stat          進入狀態 121
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
-
-
-狀態 113
-
-   27 For_block: ID DEC . stat
-
-    PRINT      偏移，並進入狀態 3
-    PRINTLN    偏移，並進入狀態 4
-    IF         偏移，並進入狀態 5
-    FOR        偏移，並進入狀態 6
-    VAR        偏移，並進入狀態 7
-    NEWLINE    偏移，並進入狀態 8
-    SUB        偏移，並進入狀態 9
-    '('        偏移，並進入狀態 10
-    '{'        偏移，並進入狀態 11
-    C_COMMENT  偏移，並進入狀態 12
-    I_CONST    偏移，並進入狀態 13
-    F_CONST    偏移，並進入狀態 14
-    ID         偏移，並進入狀態 15
-
-    stat          進入狀態 122
-    if_block      進入狀態 17
-    for_loop      進入狀態 18
-    arith         進入狀態 19
-    compare_expr  進入狀態 20
-    assign_expr   進入狀態 21
-    declaration   進入狀態 22
-    print_func    進入狀態 23
-
-
 狀態 114
 
-   30 for_assign: ID ASSIGN . arith
+   21 parameter_list: ID type .
+   22               | ID type . COM parameter_list
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    COM  偏移，並進入狀態 120
 
-    arith  進入狀態 123
+    $預設  使用規則 21 以縮減 (parameter_list)
 
 
 狀態 115
 
-   31 for_assign: ID ADD_ASSIGN . arith
+   16 function: FUNC ID '(' parameter_list ')' . funct_type '{' block_item_list '}'
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    INT    偏移，並進入狀態 121
+    FLOAT  偏移，並進入狀態 122
+    VOID   偏移，並進入狀態 123
 
-    arith  進入狀態 124
+    $預設  使用規則 20 以縮減 (funct_type)
+
+    funct_type  進入狀態 124
 
 
 狀態 116
 
-   32 for_assign: ID SUB_ASSIGN . arith
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+   58 argument_list: argument_list COM arith .
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
 
-    arith  進入狀態 125
+    $預設  使用規則 58 以縮減 (argument_list)
 
 
 狀態 117
 
-   33 for_assign: ID MUL_ASSIGN . arith
+   25 if_block: IF $@3 '(' compare_expr ')' stat . ELSE_block
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
+    ELSE     偏移，並進入狀態 125
+    NEWLINE  偏移，並進入狀態 126
 
-    arith  進入狀態 126
+    ELSE     [使用規則 29 以縮減 (ELSE_block)]
+    NEWLINE  [使用規則 29 以縮減 (ELSE_block)]
+    $預設  使用規則 29 以縮減 (ELSE_block)
+
+    ELSE_block  進入狀態 127
 
 
 狀態 118
 
-   34 for_assign: ID DIV_ASSIGN . arith
+   35 for_loop: FOR '(' $@6 compare_expr ')' stat .
 
-    SUB      偏移，並進入狀態 9
-    '('      偏移，並進入狀態 10
-    I_CONST  偏移，並進入狀態 13
-    F_CONST  偏移，並進入狀態 14
-    ID       偏移，並進入狀態 31
-
-    arith  進入狀態 127
+    $預設  使用規則 35 以縮減 (for_loop)
 
 
 狀態 119
 
-   29 For_block: for_assign stat .
+   33 for_loop: FOR assign_expr SEM $@5 compare_expr SEM . For_block
 
-    $預設  使用規則 29 以縮減 (For_block)
+    ID  偏移，並進入狀態 128
+
+    For_block   進入狀態 129
+    for_assign  進入狀態 130
 
 
 狀態 120
 
-   18 ELSE_block: ELSE $@4 stat .
+   22 parameter_list: ID type COM . parameter_list
 
-    $預設  使用規則 18 以縮減 (ELSE_block)
+    ID  偏移，並進入狀態 104
+
+    $預設  使用規則 23 以縮減 (parameter_list)
+
+    parameter_list  進入狀態 131
 
 
 狀態 121
 
-   28 For_block: ID INC stat .
+   17 funct_type: INT .
 
-    $預設  使用規則 28 以縮減 (For_block)
+    $預設  使用規則 17 以縮減 (funct_type)
 
 
 狀態 122
 
-   27 For_block: ID DEC stat .
+   18 funct_type: FLOAT .
 
-    $預設  使用規則 27 以縮減 (For_block)
+    $預設  使用規則 18 以縮減 (funct_type)
 
 
 狀態 123
 
-   30 for_assign: ID ASSIGN arith .
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   19 funct_type: VOID .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    $預設  使用規則 30 以縮減 (for_assign)
+    $預設  使用規則 19 以縮減 (funct_type)
 
 
 狀態 124
 
-   31 for_assign: ID ADD_ASSIGN arith .
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   16 function: FUNC ID '(' parameter_list ')' funct_type . '{' block_item_list '}'
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    SUB      [使用規則 31 以縮減 (for_assign)]
-    $預設  使用規則 31 以縮減 (for_assign)
+    '{'  偏移，並進入狀態 132
 
 
 狀態 125
 
-   32 for_assign: ID SUB_ASSIGN arith .
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   27 ELSE_block: ELSE . $@4 stat
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    $預設  使用規則 26 以縮減 ($@4)
 
-    SUB      [使用規則 32 以縮減 (for_assign)]
-    $預設  使用規則 32 以縮減 (for_assign)
+    $@4  進入狀態 133
 
 
 狀態 126
 
-   33 for_assign: ID MUL_ASSIGN arith .
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   28 ELSE_block: NEWLINE .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
-
-    SUB      [使用規則 33 以縮減 (for_assign)]
-    $預設  使用規則 33 以縮減 (for_assign)
+    $預設  使用規則 28 以縮減 (ELSE_block)
 
 
 狀態 127
 
-   34 for_assign: ID DIV_ASSIGN arith .
-   35 arith: arith . ADD arith
-   36      | arith . SUB arith
-   37      | arith . MUL arith
-   38      | arith . DIV arith
-   39      | arith . MOD arith
+   25 if_block: IF $@3 '(' compare_expr ')' stat ELSE_block .
 
-    ADD  偏移，並進入狀態 43
-    SUB  偏移，並進入狀態 44
-    MUL  偏移，並進入狀態 45
-    DIV  偏移，並進入狀態 46
-    MOD  偏移，並進入狀態 47
+    $預設  使用規則 25 以縮減 (if_block)
 
-    SUB      [使用規則 34 以縮減 (for_assign)]
-    $預設  使用規則 34 以縮減 (for_assign)
+
+狀態 128
+
+   36 For_block: ID . DEC stat
+   37          | ID . INC stat
+   39 for_assign: ID . ASSIGN arith
+   40           | ID . ADD_ASSIGN arith
+   41           | ID . SUB_ASSIGN arith
+   42           | ID . MUL_ASSIGN arith
+   43           | ID . DIV_ASSIGN arith
+
+    INC         偏移，並進入狀態 134
+    DEC         偏移，並進入狀態 135
+    ASSIGN      偏移，並進入狀態 136
+    ADD_ASSIGN  偏移，並進入狀態 137
+    SUB_ASSIGN  偏移，並進入狀態 138
+    MUL_ASSIGN  偏移，並進入狀態 139
+    DIV_ASSIGN  偏移，並進入狀態 140
+
+
+狀態 129
+
+   33 for_loop: FOR assign_expr SEM $@5 compare_expr SEM For_block .
+
+    $預設  使用規則 33 以縮減 (for_loop)
+
+
+狀態 130
+
+   38 For_block: for_assign . stat
+
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
+
+    stat           進入狀態 141
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
+
+
+狀態 131
+
+   22 parameter_list: ID type COM parameter_list .
+
+    $預設  使用規則 22 以縮減 (parameter_list)
+
+
+狀態 132
+
+   16 function: FUNC ID '(' parameter_list ')' funct_type '{' . block_item_list '}'
+
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
+
+    stat             進入狀態 71
+    function         進入狀態 18
+    if_block         進入狀態 19
+    block_item_list  進入狀態 142
+    for_loop         進入狀態 20
+    arith            進入狀態 21
+    call_function    進入狀態 22
+    compare_expr     進入狀態 23
+    assign_expr      進入狀態 24
+    declaration      進入狀態 25
+    print_func       進入狀態 26
+
+
+狀態 133
+
+   27 ELSE_block: ELSE $@4 . stat
+
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
+
+    stat           進入狀態 143
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
+
+
+狀態 134
+
+   37 For_block: ID INC . stat
+
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
+
+    stat           進入狀態 144
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
+
+
+狀態 135
+
+   36 For_block: ID DEC . stat
+
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
+
+    stat           進入狀態 145
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
+
+
+狀態 136
+
+   39 for_assign: ID ASSIGN . arith
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 146
+    call_function  進入狀態 22
+
+
+狀態 137
+
+   40 for_assign: ID ADD_ASSIGN . arith
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 147
+    call_function  進入狀態 22
+
+
+狀態 138
+
+   41 for_assign: ID SUB_ASSIGN . arith
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 148
+    call_function  進入狀態 22
+
+
+狀態 139
+
+   42 for_assign: ID MUL_ASSIGN . arith
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 149
+    call_function  進入狀態 22
+
+
+狀態 140
+
+   43 for_assign: ID DIV_ASSIGN . arith
+
+    SUB      偏移，並進入狀態 9
+    '('      偏移，並進入狀態 10
+    I_CONST  偏移，並進入狀態 14
+    F_CONST  偏移，並進入狀態 15
+    ID       偏移，並進入狀態 34
+
+    arith          進入狀態 150
+    call_function  進入狀態 22
+
+
+狀態 141
+
+   38 For_block: for_assign stat .
+
+    $預設  使用規則 38 以縮減 (For_block)
+
+
+狀態 142
+
+   16 function: FUNC ID '(' parameter_list ')' funct_type '{' block_item_list . '}'
+   31 block_item_list: block_item_list . stat
+
+    PRINT      偏移，並進入狀態 3
+    PRINTLN    偏移，並進入狀態 4
+    IF         偏移，並進入狀態 5
+    FOR        偏移，並進入狀態 6
+    VAR        偏移，並進入狀態 7
+    NEWLINE    偏移，並進入狀態 8
+    SUB        偏移，並進入狀態 9
+    '('        偏移，並進入狀態 10
+    '{'        偏移，並進入狀態 11
+    '}'        偏移，並進入狀態 151
+    C_COMMENT  偏移，並進入狀態 12
+    FUNC       偏移，並進入狀態 13
+    I_CONST    偏移，並進入狀態 14
+    F_CONST    偏移，並進入狀態 15
+    ID         偏移，並進入狀態 16
+
+    stat           進入狀態 102
+    function       進入狀態 18
+    if_block       進入狀態 19
+    for_loop       進入狀態 20
+    arith          進入狀態 21
+    call_function  進入狀態 22
+    compare_expr   進入狀態 23
+    assign_expr    進入狀態 24
+    declaration    進入狀態 25
+    print_func     進入狀態 26
+
+
+狀態 143
+
+   27 ELSE_block: ELSE $@4 stat .
+
+    $預設  使用規則 27 以縮減 (ELSE_block)
+
+
+狀態 144
+
+   37 For_block: ID INC stat .
+
+    $預設  使用規則 37 以縮減 (For_block)
+
+
+狀態 145
+
+   36 For_block: ID DEC stat .
+
+    $預設  使用規則 36 以縮減 (For_block)
+
+
+狀態 146
+
+   39 for_assign: ID ASSIGN arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    $預設  使用規則 39 以縮減 (for_assign)
+
+
+狀態 147
+
+   40 for_assign: ID ADD_ASSIGN arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 40 以縮減 (for_assign)]
+    $預設  使用規則 40 以縮減 (for_assign)
+
+
+狀態 148
+
+   41 for_assign: ID SUB_ASSIGN arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 41 以縮減 (for_assign)]
+    $預設  使用規則 41 以縮減 (for_assign)
+
+
+狀態 149
+
+   42 for_assign: ID MUL_ASSIGN arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 42 以縮減 (for_assign)]
+    $預設  使用規則 42 以縮減 (for_assign)
+
+
+狀態 150
+
+   43 for_assign: ID DIV_ASSIGN arith .
+   44 arith: arith . ADD arith
+   45      | arith . SUB arith
+   46      | arith . MUL arith
+   47      | arith . DIV arith
+   48      | arith . MOD arith
+
+    ADD  偏移，並進入狀態 48
+    SUB  偏移，並進入狀態 49
+    MUL  偏移，並進入狀態 50
+    DIV  偏移，並進入狀態 51
+    MOD  偏移，並進入狀態 52
+
+    SUB      [使用規則 43 以縮減 (for_assign)]
+    $預設  使用規則 43 以縮減 (for_assign)
+
+
+狀態 151
+
+   16 function: FUNC ID '(' parameter_list ')' funct_type '{' block_item_list '}' .
+
+    $預設  使用規則 16 以縮減 (function)

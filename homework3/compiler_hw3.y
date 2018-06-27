@@ -78,7 +78,7 @@ bol table function - you can add new function if need. */
 %token AND OR NOT LB2 RB2
 %token C_COMMENT
 %token SEM
-%token FUNC
+%token FUNC COM
 /* Token with return, which need to sepcify type 這裡好像要跟上面的union一樣*/
 %token <val> I_CONST	
 %token <val> F_CONST
@@ -97,6 +97,8 @@ bol table function - you can add new function if need. */
 %type <val> initializer
 %type <val> compare_expr
 
+%type <val> call_function
+%type <val> argument_list
 %type <string> for_assign
 /*associate*/
 
@@ -150,8 +152,30 @@ stat
 				
 			}
 	| C_COMMENT
+	| function
 	
 ;
+//--------------------------function
+function
+	:FUNC ID '(' parameter_list ')' funct_type 
+	'{' 
+	block_item_list 
+	'}'
+;
+
+funct_type
+    : INT 
+    | FLOAT 
+    | VOID 
+    |
+;
+parameter_list
+	:  ID type 
+	| ID type COM  parameter_list 
+	|
+;
+//-------------------------if
+
 if_block
     : 	IF					{//進到if表示新label開始
 							labeltop++;//pointer往前
@@ -195,6 +219,7 @@ block_item_list
     | block_item_list stat
 ;
 
+//------------------------for
 for_loop 													//for i = 0; i < 15; i++ {		}
 		: FOR assign_expr SEM								{//初始化值後，準備進入for
 																labeltop++;//pointer往前
@@ -316,7 +341,7 @@ for_assign
 													ForAssign($$ ,$1,$3.type,$3.buf,$3.i_val,$3.f_val,4);
 												} 
 
-
+//-------------------------- basic
 arith
 	: arith ADD arith	{ 
 		sprintf($$.buf,"%s","");//先清空	
@@ -565,7 +590,19 @@ arith
 								sprintf(tmp,"\tldc %lf\n",$1.f_val);
 								strcat( $$.buf,tmp);
 						}
+	| call_function
 ;
+//-----------------------------------------------
+call_function
+	: ID '(' argument_list ')' {sprintf($$.buf,"%s",$3.buf);}
+;
+
+argument_list
+	: argument_list COM arith 
+	| arith
+	|	{sprintf($$.buf," ");}//沒有argument
+;
+//----------------------------------------------
 
 compare_expr 
 		:arith GT arith	{//>
