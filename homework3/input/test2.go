@@ -8,9 +8,9 @@ var x int = 10
 		x++
 		print(x)
 	}
-	var x int =8
+	//var x int =8
 }
-var x int
+//var x int
 
 println(x)
 
@@ -24,7 +24,8 @@ println(x)
 		println(x)
 		}
 	}
-	print(x)
+	x++
+	println(x)
 }
 
 println(x)
@@ -47,6 +48,9 @@ println(y)
 	y++
 	println(y)
 
+	}
+	{
+	println(y)
 	}
 }
 println(y)

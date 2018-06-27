@@ -24,7 +24,19 @@ if (x == 10) {
     	x = 0
 	println(x)
 }
-			if(x!=8){
-					x=0
-					println(x)//0
-				}
+
+if(x!=8){
+		x=0
+		println(x)//0
+}
+
+//-------------
+if(x==5){
+
+} else if(x!=5){
+	x=1234.55
+	println(x)
+} else{
+
+}
+

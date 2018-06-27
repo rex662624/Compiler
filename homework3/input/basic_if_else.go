@@ -9,3 +9,4 @@ if (x < 10) {
 } else {
     x = 0
 }
+println(x)
