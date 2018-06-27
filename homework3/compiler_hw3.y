@@ -50,6 +50,8 @@ bol table function - you can add new function if need. */
 	int labeltop;//目前所在的label
 	int globallabel=0;//目前label編到幾號
 
+	void ForAssign(char* out ,char* $1,int type,char * buf,int i_val,double f_val,int index);	
+
 %}
 
 /* Using union to define nonterminal and token type */
@@ -94,6 +96,8 @@ bol table function - you can add new function if need. */
 %type <val> arith
 %type <val> initializer
 %type <val> compare_expr
+
+%type <string> for_assign
 /*associate*/
 
 
@@ -279,8 +283,38 @@ For_block	:	ID DEC stat							{
 													fprintf(fp,"\tgoto FORLabel_%d\n",labelStack[labeltop]);
 													fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
 													labeltop--;
-												}							
+												}
+			|	for_assign	stat					{
+													fprintf(fp,"%s",$1);
+													fprintf(fp,"\tgoto FORLabel_%d\n",labelStack[labeltop]);
+													fprintf(fp,"Label_%d:\n",labelStack[labeltop]);
+													labeltop--;
+											
+												}
 ;
+
+for_assign 
+			:  ID ASSIGN arith 					{
+													$$=malloc(512);
+													ForAssign($$ ,$1,$3.type,$3.buf,$3.i_val,$3.f_val,0);
+												}
+			| ID ADD_ASSIGN arith 				{
+													$$=malloc(512);
+													ForAssign($$ ,$1,$3.type,$3.buf,$3.i_val,$3.f_val,1);
+	
+												}
+			| ID SUB_ASSIGN arith 				{
+													$$=malloc(512);
+													ForAssign($$ ,$1,$3.type,$3.buf,$3.i_val,$3.f_val,2);
+												}
+			| ID MUL_ASSIGN arith 				{
+													$$=malloc(512);
+													ForAssign($$ ,$1,$3.type,$3.buf,$3.i_val,$3.f_val,3);
+												}
+			| ID DIV_ASSIGN arith 				{
+													$$=malloc(512);
+													ForAssign($$ ,$1,$3.type,$3.buf,$3.i_val,$3.f_val,4);
+												} 
 
 
 arith
@@ -1294,5 +1328,110 @@ void ScopeOver()
 			table[i]->vaild=2;
 		}
 	}
+}
+
+void ForAssign(char* out ,char* $1,int type,char * buf,int i_val,double f_val,int index)
+{
+							char * temp=malloc(512);
+							sprintf(out,"%s","");		
+							printf("FOR_ASSIGN\n");
+							int ret=-1;
+							CheckUndefined = 1;
+							ret=lookup_symbol($1);
+							CheckUndefined = 0;
+							if(ret==-1)
+								{printf("<ERROR>:Undefined variable %s (line %d)\n",$1,linecount);ERROR=1;}
+							else{
+								if(strcmp(table[ret]->type,"float32")==0){
+								if(type==0){//ID是float且arith是float
+									
+									if(index!=0)sprintf(out,"\tfload %d\n",ret);
+									strcat(out,buf);//所有arith結束都要寫入
+									if(index==0){//=
+									}else if(index==1){//+=
+									table[ret]->f_val +=f_val;
+									strcat(out,"\tfadd\n");
+									}else if(index==2){//-=
+									table[ret]->f_val -=f_val;
+									strcat(out,"\tfsub\n");
+									}else if(index==3){// *=
+									table[ret]->f_val *=f_val;
+									strcat(out,"\tfmul\n");
+									}else if(index==4){// /=
+									table[ret]->f_val /=f_val;
+									strcat(out,"\tfdiv\n");
+									}
+									sprintf(temp,"\tfstore %d\n",ret);
+									strcat(out, temp);								
+								}
+								else{//ID是float且arith是int									
+									if(index!=0)sprintf(out,"\tfload %d\n",ret);
+									strcat(out,buf);//所有arith結束都要寫入
+									strcat(out,"\ti2f\n");
+									if(index==0){//=
+									}else if(index==1){//+=
+									table[ret]->f_val +=f_val;
+									strcat(out,"\tfadd\n");
+									}else if(index==2){//-=
+									table[ret]->f_val -=f_val;
+									strcat(out,"\tfsub\n");
+									}else if(index==3){// *=
+									table[ret]->f_val *=f_val;
+									strcat(out,"\tfmul\n");
+									}else if(index==4){// /=
+									table[ret]->f_val /=f_val;
+									strcat(out,"\tfdiv\n");
+									}
+									sprintf(temp,"\tfstore %d\n",ret);
+									strcat(out, temp);	
+								}
+								}
+								else if(strcmp(table[ret]->type,"int")==0){
+								if(type==1){//ID是int且arith是int
+									
+									if(index!=0)sprintf(out,"\tiload %d\n",ret);
+									strcat(out,buf);//所有arith結束都要寫入
+									if(index==0){//=
+									}else if(index==1){//+=
+									table[ret]->i_val +=i_val;
+									strcat(out,"\tiadd\n");
+									}else if(index==2){//-=
+									table[ret]->i_val -=i_val;
+									strcat(out,"\tisub\n");
+									}else if(index==3){// *=
+									table[ret]->i_val *=i_val;
+									strcat(out,"\timul\n");
+									}else if(index==4){// /=
+									table[ret]->i_val /=i_val;
+									strcat(out,"\tidiv\n");
+									}
+									sprintf(temp,"\tistore %d\n",ret);
+									strcat(out, temp);		
+								}
+								else{//ID是int且arith是float
+									if(index!=0)sprintf(out,"\tiload %d\n",ret);
+									strcat(out,buf);//所有arith結束都要寫入
+									strcat(out,"\tf2i\n");
+									if(index==0){//=
+									}else if(index==1){//+=
+									table[ret]->i_val +=i_val;
+									strcat(out,"\tiadd\n");
+									}else if(index==2){//-=
+									table[ret]->i_val -=i_val;
+									strcat(out,"\tisub\n");
+									}else if(index==3){// *=
+									table[ret]->i_val *=i_val;
+									strcat(out,"\timul\n");
+									}else if(index==4){// /=
+									table[ret]->i_val /=i_val;
+									strcat(out,"\tidiv\n");
+									}
+									sprintf(temp,"\tistore %d\n",ret);
+									strcat(out, temp);		
+								}
+								}
+
+							}
+
 }
 

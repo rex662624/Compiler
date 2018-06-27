@@ -14,5 +14,10 @@ for i = 0; i < 15; i++ {
 for i = 18; i != 3; i-- {
 	println(i)
 }
+println("Ddsadsasakcodsjviljfosad")
+
+for i = 2; i < 50; i=i+3+6.5 {
+	println(i)
+}
 
 
