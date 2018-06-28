@@ -131,7 +131,8 @@ stat
 		
 		'}'				{	
 						// NEW 把目前scope的vaild設為2表示dead不能用
-						ScopeOver();
+						if(CreateTableFlag==1)
+							ScopeOver();
 						NowDepth--; 
 						//printf("-------------------------Scope %d\n",NowDepth);
 						}
@@ -184,7 +185,7 @@ if_block
 						} 	
 	'(' compare_expr ')' stat ELSE_block	{
 							//printf("-----------------------------asdsad\n");
-							labeltop--;
+							labeltop--;//如果出 if block 就要把 stackpop 一個  
 						
 						}
 ;
@@ -219,7 +220,7 @@ block_item_list
     | block_item_list stat
 ;
 
-//------------------------for
+//------------------for----------------------------------------------
 for_loop 													//for i = 0; i < 15; i++ {		}
 		: FOR assign_expr SEM								{//初始化值後，準備進入for
 																labeltop++;//pointer往前
